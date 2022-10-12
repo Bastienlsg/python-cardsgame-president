@@ -156,9 +156,10 @@ class AIPlayer(Player):
 
 
 class PresidentGame:
-    def __init__(self, nb_players: int = 4):
+    def __init__(self, nb_players: int = 3):
         self.__generate_players(nb_players)
         self.__generate_cards()
+        self.distribute_cards()
         self.round = 0
 
     def __generate_players(self, nb_players: int):
@@ -177,6 +178,10 @@ class PresidentGame:
             card = self.__deck.pick_card()
             self.__players[giving_card_to_player].add_to_hand(card)
             giving_card_to_player = (giving_card_to_player+1) % nb_players
+        self.introduction_player()
+    def introduction_player(self):
+        for player in self.players:
+            print("Dites bonjour à {}, ce joueur possède {} cartes".format(player.name, len(player.hand)))
 
     @property
     def players(self):

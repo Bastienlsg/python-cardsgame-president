@@ -46,6 +46,6 @@ if __name__ == '__main__':
         *** President : The cards game (TM) v.0.1 ***
         ********************************************* """)
     g = PresidentGame()
-    g.distribute_cards()
+    #g.distribute_cards()
     game_loop(g)
     print('Thank you for playing. I hope you enjoyed !')
