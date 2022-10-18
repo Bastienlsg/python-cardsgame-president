@@ -15,15 +15,20 @@ def game_loop(g: PresidentGame):
     wanna_continue = True
     while wanna_continue:
 
+
         print('Your current deck is : ')
         print(g.main_player.hand, )
         print_ln()
         choice = '0'
+        choice_nb_cards = 0
 
         while g.main_player.has_symbol(choice) == 0:
             choice = input('What value do you wish to play ? ')
+        if g.main_player.has_symbol(choice) != 1:
+            while g.main_player.has_symbol(choice) < choice_nb_cards or choice_nb_cards < 1:
+                choice_nb_cards = int(input(f'How many {choice} do you want to play ?'))
 
-        plays = g.main_player.play(choice)
+        plays = g.main_player.play(choice, choice_nb_cards)
         print(f"You play {plays}")
 
         nb_cards = len(plays)

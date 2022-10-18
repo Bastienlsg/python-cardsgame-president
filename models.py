@@ -107,7 +107,7 @@ class Player:
     def name(self):
         return self._name
 
-    def play(self, symbol) -> list:
+    def play(self, symbol,nb_cards) -> list:
         """
         Remove from the hand of the player, all cards having a corresponding symbol.
         Args:
@@ -117,8 +117,12 @@ class Player:
         nothing is found.
 
         """
-        cards_played = [card for card in self._hand if card.symbol ==
-                        symbol]
+        #cards_played = [card for card in self._hand if card.symbol == symbol and len(cards_played) <= nb_cards]
+        cards_played = []
+        for card in self._hand:
+            if card.symbol == symbol and len(cards_played) < nb_cards:
+                cards_played.append(card)
+
         self.remove_from_hand(cards_played)
         return cards_played
 
