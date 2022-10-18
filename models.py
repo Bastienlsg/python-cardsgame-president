@@ -21,6 +21,7 @@ VALUES = {
 
 class Deck:
     """ Deck du jeu de société du Président. """
+
     def __init__(self):
         self.__cards: list = []
         """ Génération d'un deck de 52 cartes"""
@@ -73,6 +74,18 @@ class Card:
     def __ne__(self, other):
         return self.__value != other.value
 
+    def is_eq(self, symbol):
+        return self.__value == VALUES[symbol]
+
+    def is_ge(self, symbol):
+        return self.__value >= VALUES[symbol]
+
+    def is_le(self, symbol):
+        return self.__value <= VALUES[symbol]
+
+    def is_lt(self, symbol):
+        return self.__value < VALUES[symbol]
+
     @property
     def value(self):
         return self.__value
@@ -99,6 +112,9 @@ class Player:
         for c in cards:
             self._hand.remove(c)
 
+    def empty_hand(self):
+        self._hand = []
+
     @property
     def hand(self):
         return self._hand
@@ -107,7 +123,7 @@ class Player:
     def name(self):
         return self._name
 
-    def play(self, symbol,nb_cards) -> list:
+    def play(self, symbol, nb_cards) -> list:
         """
         Remove from the hand of the player, all cards having a corresponding symbol.
         Args:
@@ -117,7 +133,7 @@ class Player:
         nothing is found.
 
         """
-        #cards_played = [card for card in self._hand if card.symbol == symbol and len(cards_played) <= nb_cards]
+        # cards_played = [card for card in self._hand if card.symbol == symbol and len(cards_played) <= nb_cards]
         cards_played = []
         for card in self._hand:
             if card.symbol == symbol and len(cards_played) < nb_cards:
@@ -149,13 +165,17 @@ class AIPlayer(Player):
         Returns: An array of cards to play.
 
         """
+        # if choice == 0:
+        cards_played = []
+
         best_choice = None
         for index, card in enumerate(self.hand):
-            if best_choice is None and card.symbol >= choice and \
-                    self.has_symbol(card.symbol) >= \
-                    nb_cards:
-                cards_played = self._hand[index:index+nb_cards]
+            if best_choice is None and card.is_ge(choice) and \
+                    self.has_symbol(card.symbol) >= nb_cards:
+                cards_played = self._hand[index:index + nb_cards]
                 best_choice = card.symbol
+
+        self.remove_from_hand(cards_played)
         return cards_played if best_choice is not None else []
 
 
@@ -164,11 +184,11 @@ class PresidentGame:
         self.__generate_players(nb_players)
         self.__generate_cards()
         self.distribute_cards()
-        self.round = 0
+        self.round = Round()
 
     def __generate_players(self, nb_players: int):
         self.__players = [Player()]
-        for _ in range(nb_players-1):
+        for _ in range(nb_players - 1):
             self.__players.append(AIPlayer())
 
     def __generate_cards(self):
@@ -181,11 +201,15 @@ class PresidentGame:
         while len(self.__deck.cards) > 0:
             card = self.__deck.pick_card()
             self.__players[giving_card_to_player].add_to_hand(card)
-            giving_card_to_player = (giving_card_to_player+1) % nb_players
+            giving_card_to_player = (giving_card_to_player + 1) % nb_players
         self.introduction_player()
+
     def introduction_player(self):
         for player in self.players:
             print("Dites bonjour à {}, ce joueur possède {} cartes".format(player.name, len(player.hand)))
+
+    def __generate_round(self):
+        return self.__round
 
     @property
     def players(self):
@@ -199,3 +223,60 @@ class PresidentGame:
     def main_player(self):
         """ Main player is player 0 """
         return self.__players[0]
+
+
+# @property
+# def round(self):
+#   return self.__round
+
+
+class Round:
+
+    def __init__(self):
+        self.__is_started = False
+        self.__cards_on_table = None
+        self.__current_player = 0
+        self.__last_player = 1
+
+    def next_round(self):
+        self.__last_player = -1
+        self.__is_started = False
+        self.__cards_on_table = None
+    def update(self, last_player, plays):
+        self.__last_player = last_player
+        self.__cards_on_table = plays
+        self.__is_started = True
+
+    def is_ended(self):
+        return self.__last_player == self.__current_player
+
+    def set_cards_on_table(self, cards):
+        self.__cards_on_table = cards
+
+    def set_current_player(self, value):
+        self.__current_player = value
+
+    def set_last_player(self, value):
+        self.__last_player = value
+
+    def start(self):
+        self.__is_started = True
+
+    def stop(self):
+        self.__is_started = False
+
+    @property
+    def current_player(self):
+        return self.__current_player
+
+    @property
+    def last_player(self):
+        return self.__last_player
+
+    @property
+    def cards_on_table(self):
+        return self.__cards_on_table
+
+    @property
+    def is_started(self):
+        return self.__is_started
