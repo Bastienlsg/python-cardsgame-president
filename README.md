@@ -21,3 +21,5 @@
 * Pour lancer le jeu faites :
 
     ```python3 main.py```
+
+Bon jeu !
