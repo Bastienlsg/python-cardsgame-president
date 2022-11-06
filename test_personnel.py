@@ -18,4 +18,6 @@ class TestPlayers(unittest.TestCase):
         number = re.findall(r'\d+', output_string)
         self.assertFalse(len(number) == 0)
 
+if __name__ == '__main__':
+    unittest.main()
 
