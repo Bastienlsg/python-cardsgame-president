@@ -15,20 +15,36 @@ def game_loop(g: PresidentGame):
         g: The President Game instance.
     """
     wanna_continue = True
+    # boucle à chaque nouvelle partie
     while wanna_continue:
         g.new_game()
+        print(g.players)
+        g.card_exchange()
+        print(g.players)
 
+        # définit le premier joueur de la nouvelle partie
+        if not g.is_first_game:
+            for player in g.players:
+                if player.role == 1:
+                    g.round.set_current_player(g.players.index(player))
+                    print("le président est {}, à lui/elle de commencer !!!" .format(player.name))
+        g.is_first_game = False
+
+
+
+        # boucle à chaque début fois que les cartes sont ramassés et que le nouveau tour démarre
         while not g.last_one_player():
-            print(g.players)
 
             g.round.next_round()
 
+            # boucle à chaque fois qu'un joueur joue
             while not g.round.is_ended() and not g.last_one_player():
                 # si le joueur à encore des cartes en main
                 if len(g.players[g.round.current_player].hand) > 0:
-                    # vérification du type de joueur : humain ou IA et
-                    # que le joueur à encore des cartes
+                    # vérification du type de joueur : humain ou IA
+
                     if not isinstance(g.players[g.round.current_player], AIPlayer):
+                        # c'est l'humain qui joue
                         print('Your current deck is : ')
                         print(g.main_player.hand)
                         print_ln()
@@ -76,8 +92,8 @@ def game_loop(g: PresidentGame):
                         print(f"You play {plays}")
 
                         nb_cards = len(plays)
-                    # C'est à L'IA de jouer
                     else:
+                        # C'est à L'IA de jouer
                         # print('symbol : {}  /  nb cartes : {}' .format(g.round.cards_on_table[0].symbol, nb_cards))
                         if g.round.is_started:
                             plays = g.players[g.round.current_player].play(g.round.cards_on_table[0].symbol,
@@ -94,11 +110,11 @@ def game_loop(g: PresidentGame):
                         g.set_role(g.round.current_player)
 
                 g.round.set_current_player((g.round.current_player + 1) % len(g.players))
-
-            print(
-                '************************************************\nTour remporté par {} ! à lui/elle de '
-                'commencer.\n************************************************\n'.format(
-                    g.players[g.round.current_player].name))
+            if not g.is_ended:
+                print(
+                    '************************************************\nTour remporté par {} ! à lui/elle de '
+                    'commencer.\n************************************************\n'.format(
+                        g.players[g.round.current_player].name))
         for player in g.players:
             print('{}   role: {}'.format(player.name, player.role))
         wanna_continue = input('Partie Suivante (y/N)? ')

@@ -1,5 +1,6 @@
 import random
 import names
+import re
 
 COLORS = ['♡', '♤', '♧', '♢']
 VALUES = {
@@ -17,12 +18,18 @@ VALUES = {
     'R': 13,
     'A': 14
 }
-ROLES = {
-    0: 'Président',
-    1: 'Vice-Président',
-    2: 'Vice-Trouduc',
-    3: 'Trouduc'
-}
+
+
+def value_exist(value):
+    """ retourne la valeur uppercase s'il elle éxiste sinon None """
+    print("test regex")
+    pattern_letter = re.compile("^[VDRAvdra]$")
+    pattern_number = re.compile("^[0-9]$")
+
+    if pattern_letter.match(value) or pattern_number.match(value) or value == '10':
+        return value.upper()
+    else:
+        return None
 
 
 class Deck:
@@ -109,8 +116,22 @@ class Player:
         self._name: str = player_name if player_name is not None else \
             names.get_first_name()
         self._hand: list = []
-        # roles: 0 : president, 1 vice president, 2 vice trouduc, 3 trouduc
         self.role = None
+        self.ask_name()
+
+    def give_best_card(self, player, nb_card):
+        """ le joueur donne sa meilleur carte au joueur passé en paramètre """
+        for x in range(0, nb_card):
+            card_to_add = self.hand[len(self.hand) - 1]
+            card_to_remove = [card_to_add]
+            self.remove_from_hand(card_to_remove)
+            player.add_to_hand(card_to_add)
+            player.hand.sort()
+            print("{} donne ça meilleure carte à {}".format(self.name, player.name))
+
+    def ask_name(self):
+        if not isinstance(self, AIPlayer):
+            self._name = input("Quel est votre Prénom?")
 
     def add_to_hand(self, card: Card):
         self._hand.append(card)
@@ -154,6 +175,7 @@ class Player:
         return f"{self.name}\t: {self.hand}"
 
     def has_symbol(self, card_symbol) -> int:
+        """ retourne le nombre de carte correspondant au symbole, de le main du joueur """
         nb_cards = 0
         for card in self._hand:
             if card.symbol == card_symbol:
@@ -161,7 +183,55 @@ class Player:
         return nb_cards
 
 
+class HumanPlayer(Player):
+
+    def ask_card_to_give(self):
+        """ demande au joueur de donner une/des carte(s) de son jeu et retourne la/les carte(s) """
+        print('Your current deck is : ')
+        print(self.hand)
+        print("\n")
+
+        choice = None
+        while choice is None or self.has_symbol(choice) < 1:
+            choice = input('Quelle carte voulez vous donner ?')
+            choice = value_exist(choice)
+
+        return self.play(choice, 1)[0]
+
+    def ask_card_to_play(self):
+        choice = None
+        print('Your current deck is : ')
+        print(self.hand)
+        print("\n")
+        while choice is None:
+            match state:
+                # demande au joueur de jouer
+                case 1:
+                    choice = input('What value do you wish to play ? pass(p)')
+                # demande au joueur de donner une carte
+                case 2:
+                    choice = input('Quelle carte voulez vous donner ?')
+
+            choice = value_exist(choice)
+        return choice
+
+    def give_chosen_card(self, player, nb_cards):
+        for x in range(0, nb_cards):
+            card_to_add = self.ask_card_to_give()
+            player.add_to_hand(card_to_add)
+
+
 class AIPlayer(Player):
+
+    def give_chosen_card(self, player, nb_card):
+        for x in range(0, nb_card):
+            card_to_add = self.hand[0]
+            card_to_remove = [card_to_add]
+            self.remove_from_hand(card_to_remove)
+            player.add_to_hand(card_to_add)
+            player.hand.sort()
+            print("{} donne une carte de son choix à {}".format(self.name, player.name))
+
     def play(self, choice, nb_cards: int) -> list:
         """
         Play a card correspondig to what has been played on the table.
@@ -189,12 +259,66 @@ class AIPlayer(Player):
 
 class PresidentGame:
     def __init__(self, nb_players: int = 3):
-        self.__generate_players(nb_players)
+        self.__generate_players(self.ask_player_number())
         self.round = Round()
-        self.current_role_available = 0
-        self.is_ended = True
+        self.current_role_available = 1
+        self.is_ended = False
+        self.list_role = None
+        self.generate_list_role()
+        self.is_first_game = True
+
+    def ask_player_number(self):
+        """ input console pour demander le nombre de joueur total de la partie """
+        return int(input('Combien de joueur pour cette partie ?'))
+
+    def card_exchange(self):
+        """ procède à l'échange de cartes entres les présidents et les trouducs """
+        # si ce n'est pas la première partie alors il y a des rôles et donc des échanges
+        if not self.is_first_game:
+            # le président et le trouduc échange leur cartes
+            for player in self.players:
+                if player.role == 1:
+                    president = player
+                elif player.role == len(self.players):
+                    trouduc = player
+            president.give_chosen_card(trouduc, 2)
+            trouduc.give_best_card(president, 2)
+            # s'il y a plus de 4 joueurs, les vices font également leur echange
+            if len(self.players) > 3:
+                for player in self.players:
+                    if player.role == 2:
+                        vice_president = player
+                    elif player.role == len(self.players) - 1:
+                        vice_trouduc = player
+                vice_president.give_chosen_card(vice_trouduc, 1)
+                vice_trouduc.give_best_card(vice_president, 1)
+
+
+    def generate_list_role(self):
+        """ génere la liste des rôles disponible en fonction du nombre de joueur """
+        self.list_role = {1: 'Président'}
+        nb_player = len(self.players)
+        # si moins de 4 joueurs : trois rôles : président, trouduc, neutre
+        if nb_player < 4:
+            for x in range(2, nb_player + 1):
+                if x == nb_player:
+                    self.list_role[x] = "Trouduc"
+                else:
+                    self.list_role[x] = None
+
+        # si 4 joueurs ou plus : cinq rôles : président + vice, trouduc + vice, neutre
+        else:
+            self.list_role[2] = 'Vice-Président'
+            for x in range(3, nb_player + 1):
+                if x == nb_player:
+                    self.list_role[x] = "Trouduc"
+                elif x == (nb_player - 1):
+                    self.list_role[x] = "Vice-Trouduc"
+                else:
+                    self.list_role[x] = None
 
     def players_active(self):
+        """ retourne le nombre de joueurs actif (encore avec des cartes en main) """
         nb_players_active = 0
         for player in self.players:
             if len(player.hand) > 0:
@@ -202,69 +326,58 @@ class PresidentGame:
         return nb_players_active
 
     def set_role(self, id_player):
-        # s'il y a moins de 4 joueurs, pas de vice president ou vice trouduc
-        if len(self.__players) < 4:
-            # attribution des roles 0: president  3: trouduc
-            if self.current_role_available == 0:
-                self.players[id_player].role = 0
-                self.current_role_available = 3
-            elif self.current_role_available == 3 and self.players_active() == 1:
-                self.players[id_player].role = 3
-                # l'attribution du role trouduc met fin à la partie
-                self.is_ended = True
-                self.current_role_available = 0
+        """ définit le rôle du joueur envoyé en paramètre en fonction des rôles encore disponible dans list_role du PresidentGame """
+        self.players[id_player].role = self.current_role_available
+        self.current_role_available += 1
 
-        # s'il y a 4 joueurs ou plus, on inclus les vis
-        if len(self.__players) >= 4:
-            # attribution des roles 0: president  1: Vice president  2: vice trouduc  3: trouduc
-            if self.current_role_available == 0:
-                self.players[id_player].role = 0
-                self.current_role_available = 1
-            elif self.current_role_available == 1:
-                self.players[id_player].role = 1
-                self.current_role_available = 2
-            elif self.current_role_available == 2 and self.players_active() == 1:
-                self.players[id_player].role = 2
-                self.current_role_available = 3
-            elif self.current_role_available == 3 and self.players_active() == 1:
-                self.players[id_player].role = 3
-                self.is_ended = True
-                self.current_role_available = 0
-
-        if self.players[id_player] is None:
-            print('**********************************************\n{} n\'a plus de carte et n\'a pas de rôle :-( '
-                  '\n**********************************************' .format(self.__players[id_player].name))
+        if self.list_role[self.players[id_player].role] is None:
+            print('******** {} n\'a plus de carte et n\'a pas de rôle :-( '.format(self.__players[id_player].name))
         else:
-            print('**********************************************\n{} est {} '
-                  '!!!\n**********************************************' .format(self.__players[id_player].name,
-                                                                                ROLES[self.__players[id_player].role]))
+            print('******** {} est {} '.format(self.__players[id_player].name,
+                                               self.list_role[
+                                                   self.players[id_player].role]))
+
+            # s'il n'y à plus qu'un rôle à attribuer, c'est le trouduc et la partie est terminé
+            if self.current_role_available == len(self.players):
+                for player in self.players:
+                    if len(player.hand) > 0:
+                        self.is_ended = True
+                        player.role = self.current_role_available
+                        print(
+                            '******** {} est le trouduc !!! '.format(player.name))
 
     def new_game(self):
-        self.current_role_available = 0
+        """ Réinitialise les rôles disponibles, ditribut les cartes, définis is_ended de PresidentGame à False """
+        self.current_role_available = 1
         self.distribute_cards()
+        self.is_ended = False
 
     def __generate_players(self, nb_players: int):
-        self.__players = [Player()]
+        """ Génère un joueur humain et un nombre de joueur IA passé en paramètre """
+        self.__players = [HumanPlayer()]
         for _ in range(nb_players - 1):
             self.__players.append(AIPlayer())
 
     def __generate_cards(self):
+        """ Génère un Deck et mélange les cartes """
         self.__deck = Deck()
         self.__deck.shuffle()
 
     def distribute_cards(self):
+        """ Vide les mains des joueurs et distribue les cartes """
         for player in self.__players:
             player.empty_hand()
         self.__generate_cards()
         giving_card_to_player = 0
         nb_players = len(self.__players)
-        while len(self.__deck.cards) > 45:
+        while len(self.__deck.cards) > 0:
             card = self.__deck.pick_card()
             self.__players[giving_card_to_player].add_to_hand(card)
             giving_card_to_player = (giving_card_to_player + 1) % nb_players
         self.introduction_player()
 
     def introduction_player(self):
+        """ présente les joueurs avec leur nom et leur nombre de cartes """
         for player in self.players:
             print("Dites bonjour à {}, ce joueur possède {} cartes".format(player.name, len(player.hand)))
 
@@ -272,6 +385,7 @@ class PresidentGame:
     #   return self.__round
 
     def last_one_player(self):
+        """ return vrai s'il reste qu'un seul joueur """
         players_left = 0
         for player in self.__players:
             if len(player.hand) > 0:
@@ -306,16 +420,19 @@ class Round:
         self.__last_player = 1
 
     def next_round(self):
+        """ enlève les cartes de la table, reset le flag "is_started" à False et paramètre "last_player à une valeur qui ne peut pas être égale au "current_player" """
         self.__last_player = -1
         self.__is_started = False
         self.__cards_on_table = None
 
     def update(self, last_player, plays):
+        """ met à jour le last_player et les cartes sur la tables avec les paramètres envoyés, passe le flag is_started du round à True """
         self.__last_player = last_player
         self.__cards_on_table = plays
         self.__is_started = True
 
     def is_ended(self):
+        """ Compare le last_player et le current_player, si c'est le même, retourne True """
         return self.__last_player == self.__current_player
 
     def set_cards_on_table(self, cards):
@@ -328,9 +445,11 @@ class Round:
         self.__last_player = value
 
     def start(self):
+        """ paramètre le flag is_started du round à True """
         self.__is_started = True
 
     def stop(self):
+        """ paramètre le flag is_started du round à False """
         self.__is_started = False
 
     @property
