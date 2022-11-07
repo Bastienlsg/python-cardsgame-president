@@ -1,4 +1,4 @@
-from models import PresidentGame, Player, generate_window
+from models import PresidentGame, Player, Window
 from models import PresidentGame, AIPlayer
 import random
 
@@ -120,7 +120,8 @@ def game_loop(g: PresidentGame):
 
 
 if __name__ == '__main__':
-    generate_window()
+    win = Window()
+    win.mainloop()
     print(
         """        *********************************************
         *** President : The cards game (TM) v.0.1 ***

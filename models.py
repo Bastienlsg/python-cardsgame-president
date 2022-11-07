@@ -294,7 +294,6 @@ class PresidentGame:
                 vice_president.give_chosen_card(vice_trouduc, 1)
                 vice_trouduc.give_best_card(vice_president, 1)
 
-
     def generate_list_role(self):
         """ génere la liste des rôles disponible en fonction du nombre de joueur """
         self.list_role = {1: 'Président'}
@@ -380,7 +379,8 @@ class PresidentGame:
     def introduction_player(self):
         """ présente les joueurs avec leur nom et leur nombre de cartes """
         for player in self.players:
-            print("Dites bonjour à {}, ce joueur possède {} cartes".format(player.name, len(player.hand)))
+            presentation = "Dites bonjour à {}, ce joueur possède {} cartes".format(player.name, len(player.hand))
+            return presentation
 
     # def __generate_round(self):
     #   return self.__round
@@ -469,23 +469,45 @@ class Round:
     def is_started(self):
         return self.__is_started
 
-def generate_window():
-    win = Tk()
 
-    win.geometry('500x250')
-    l = Label(win, text="What value do you wish to play ? pass(p)")
-    l.pack()
+
+class Window(Tk):
+
+    def __init__(self):
+        super().__init__()
+        self.e = None
+        self.title('Jeu du président')
+        p1 = PhotoImage(file='assets/icon.png')
+        self.iconphoto(False, p1)
+        self.geometry('500x250')
+        self.ask_geometry()
+
+    def ask_geometry(self):
+        self.e = Entry(self, name="value")
+        self.e.pack()
+        label = Label(self, text="What size do you want ?")
+        label.pack()
+        b = Button(self, text="Submit", command=self.get_resolution)
+        b.pack()
+
+    def get_resolution(self):
+        print('You clicked Submit button!')
+        resolution = self.e.get()
+        self.geometry(resolution)
+
+"""def generate_window():
+
+    label = Label(win, text="What value do you wish to play ? pass(p)")
+    label.pack()
     e = Entry(win, name="value")
     e.pack()
     label = Label(win, text="", font=('Helvetica 13'))
     label.pack()
+
     def getValue():
         print('You clicked Submit button!')
         label.config(text=e.get(), font=('Helvetica 13'))
-        label.config(text=e.get(), font=('Helvetica 13'))
-        entry = e.get()
-        print(entry)
+        value_card = e.get()
 
     b = Button(win, text="Submit", command=getValue)
-    b.pack()
-    win.mainloop()
+    b.pack()"""
