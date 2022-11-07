@@ -470,15 +470,20 @@ class Round:
         return self.__is_started
 
 def generate_window():
-    launched_window = Tk()
+    win = Tk()
 
-    launched_window.geometry('500x250')
-    l = Label(launched_window, text="What value do you wish to play ? pass(p)")
-    e = Entry(launched_window)
-    def printMessage():
-        print('You clicked Submit button!')
-    b = Button(launched_window, text="Submit", command=printMessage)
+    win.geometry('500x250')
+    l = Label(win, text="What value do you wish to play ? pass(p)", font=('Helvetica 13'))
     l.pack()
+    e = Entry(win, name="value")
     e.pack()
+    label = Label(win, text="", font=('Helvetica 13'))
+    label.pack()
+    def getValue():
+        print('You clicked Submit button!')
+        label.config(text=e.get(), font=('Helvetica 13'))
+        label.config(text=e.get(), font=('Helvetica 13'))
+
+    b = Button(win, text="Submit", command=getValue)
     b.pack()
-    launched_window.mainloop()
+    win.mainloop()
