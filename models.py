@@ -1,4 +1,6 @@
 import random
+from tkinter import messagebox
+
 import names
 import re
 from tkinter import *
@@ -475,6 +477,7 @@ class Window(Tk):
 
     def __init__(self):
         super().__init__()
+        self.b = None
         self.e = None
         self.title('Jeu du président')
         p1 = PhotoImage(file='assets/icon.png')
@@ -491,23 +494,8 @@ class Window(Tk):
         b.pack()
 
     def get_resolution(self):
-        print('You clicked Submit button!')
         resolution = self.e.get()
-        self.geometry(resolution)
-
-"""def generate_window():
-
-    label = Label(win, text="What value do you wish to play ? pass(p)")
-    label.pack()
-    e = Entry(win, name="value")
-    e.pack()
-    label = Label(win, text="", font=('Helvetica 13'))
-    label.pack()
-
-    def getValue():
-        print('You clicked Submit button!')
-        label.config(text=e.get(), font=('Helvetica 13'))
-        value_card = e.get()
-
-    b = Button(win, text="Submit", command=getValue)
-    b.pack()"""
+        if resolution != "" and 2 < len(resolution) < 10 and resolution.find('x') > 0:
+            self.geometry(resolution)
+        else:
+            messagebox.showwarning("Erreur", "Ce n'est pas une résolution correct")
