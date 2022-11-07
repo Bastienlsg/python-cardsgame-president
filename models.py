@@ -1,6 +1,7 @@
 import random
 import names
 import re
+from tkinter import *
 
 COLORS = ['♡', '♤', '♧', '♢']
 VALUES = {
@@ -467,3 +468,17 @@ class Round:
     @property
     def is_started(self):
         return self.__is_started
+
+def generate_window():
+    launched_window = Tk()
+
+    launched_window.geometry('500x250')
+    l = Label(launched_window, text="What value do you wish to play ? pass(p)")
+    e = Entry(launched_window)
+    def printMessage():
+        print('You clicked Submit button!')
+    b = Button(launched_window, text="Submit", command=printMessage)
+    l.pack()
+    e.pack()
+    b.pack()
+    launched_window.mainloop()

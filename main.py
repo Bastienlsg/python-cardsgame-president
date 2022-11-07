@@ -1,4 +1,4 @@
-from models import PresidentGame, Player
+from models import PresidentGame, Player, generate_window
 from models import PresidentGame, AIPlayer
 import random
 
@@ -18,9 +18,7 @@ def game_loop(g: PresidentGame):
     # boucle à chaque nouvelle partie
     while wanna_continue:
         g.new_game()
-        print(g.players)
         g.card_exchange()
-        print(g.players)
 
         # définit le premier joueur de la nouvelle partie
         if not g.is_first_game:
@@ -122,7 +120,7 @@ def game_loop(g: PresidentGame):
 
 
 if __name__ == '__main__':
-    print_ln()
+    generate_window()
     print(
         """        *********************************************
         *** President : The cards game (TM) v.0.1 ***
