@@ -473,7 +473,7 @@ def generate_window():
     win = Tk()
 
     win.geometry('500x250')
-    l = Label(win, text="What value do you wish to play ? pass(p)", font=('Helvetica 13'))
+    l = Label(win, text="What value do you wish to play ? pass(p)")
     l.pack()
     e = Entry(win, name="value")
     e.pack()
@@ -483,6 +483,8 @@ def generate_window():
         print('You clicked Submit button!')
         label.config(text=e.get(), font=('Helvetica 13'))
         label.config(text=e.get(), font=('Helvetica 13'))
+        entry = e.get()
+        print(entry)
 
     b = Button(win, text="Submit", command=getValue)
     b.pack()
