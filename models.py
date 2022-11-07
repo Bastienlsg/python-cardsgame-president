@@ -472,30 +472,37 @@ class Round:
         return self.__is_started
 
 
-
 class Window(Tk):
 
     def __init__(self):
         super().__init__()
-        self.b = None
-        self.e = None
         self.title('Jeu du président')
-        p1 = PhotoImage(file='assets/icon.png')
-        self.iconphoto(False, p1)
+        icon = PhotoImage(file='assets/icon.png')
+        self.iconphoto(False, icon)
         self.geometry('500x250')
+        self.home_page()
+        self.btn = None
+        self.input_res = None
+
+    def home_page(self):
+        self.btn = Button(self, text="go to parameters", command=lambda: [self.parameters_page(), self.hide_home_page()])
+        self.btn.pack()
+
+    def hide_home_page(self):
+        self.btn.pack_forget()
+
+    def parameters_page(self):
         self.ask_geometry()
 
     def ask_geometry(self):
-        self.e = Entry(self, name="value")
-        self.e.pack()
-        label = Label(self, text="What size do you want ?")
-        label.pack()
-        b = Button(self, text="Submit", command=self.get_resolution)
-        b.pack()
+        Label(self, text="Quelle résolution souhaitez-vous ?").pack()
+        self.input_res = Entry(self, name="resolution")
+        self.input_res.pack()
+        Button(self, text="Submit", command=self.get_resolution).pack()
 
     def get_resolution(self):
-        resolution = self.e.get()
+        resolution = self.input_res.get()
         if resolution != "" and 2 < len(resolution) < 10 and resolution.find('x') > 0:
             self.geometry(resolution)
         else:
-            messagebox.showwarning("Erreur", "Ce n'est pas une résolution correct")
+            messagebox.showwarning("Erreur", "Ce n'est pas une résolution correct !")
