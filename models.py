@@ -299,7 +299,6 @@ class PresidentGame:
                     self.human_play()
                 else:
                     # C'est à L'IA de jouer
-                    # print('symbol : {}  /  nb cartes : {}' .format(self.round.cards_on_table[0].symbol, nb_cards))
                     self.ia_play()
 
                 # si le joueur ou l'iA vient de finir sa main, un role lui est attribué
@@ -356,7 +355,7 @@ class PresidentGame:
                         choice) < choice_nb_cards or choice_nb_cards < 1:
                     choice_nb_cards = input(f'How many {choice} do you want to play ?')
                     if choice_nb_cards != '':
-                        choice_nb_cards = int(choice_nb_cards)
+                        choice_nb_cards = current_player.ask_number_of_card_to_play(choice)
             # le joueur à la carte en un seul exemplaire, on ne demande pas le nombre de
             # cartes qu'il veut poser
             else:
