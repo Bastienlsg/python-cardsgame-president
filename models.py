@@ -479,30 +479,44 @@ class Window(Tk):
         self.title('Jeu du président')
         icon = PhotoImage(file='assets/icon.png')
         self.iconphoto(False, icon)
+        bg_menu = PhotoImage(file="assets/president_game.jpg.png")
+        bg_game = PhotoImage(file="assets/poker_top.jpg")
         self.geometry('500x250')
         self.home_page()
-        self.btn = None
         self.input_res = None
 
     def home_page(self):
-        self.btn = Button(self, text="go to parameters", command=lambda: [self.parameters_page(), self.hide_home_page()])
-        self.btn.pack()
+        self.btn_play = Button(self, text="Jouer", command=self.hide_home_page)
+        self.btn_play.pack()
+        self.btn_parameters = Button(self, text="Paramètres", command=lambda: [self.parameters_page(), self.hide_home_page()])
+        self.btn_parameters.pack()
 
     def hide_home_page(self):
-        self.btn.pack_forget()
+        self.btn_parameters.pack_forget()
+        self.btn_play.pack_forget()
 
     def parameters_page(self):
         self.ask_geometry()
+        self.back_btn = Button(self, text=u'\u21a9', command=lambda: [self.home_page(), self.hide_parameters_page()])
+        self.back_btn.pack(anchor="w", side="bottom", padx=10, pady=10)
+
+    def hide_parameters_page(self):
+        self.res_label.pack_forget()
+        self.input_res.pack_forget()
+        self.btn_change_res.pack_forget()
+        self.back_btn.pack_forget()
 
     def ask_geometry(self):
-        Label(self, text="Quelle résolution souhaitez-vous ?").pack()
+        self.res_label = Label(self, text="Quelle résolution souhaitez-vous ?")
+        self.res_label.pack()
         self.input_res = Entry(self, name="resolution")
         self.input_res.pack()
-        Button(self, text="Submit", command=self.get_resolution).pack()
+        self.btn_change_res = Button(self, text="Changer", command=self.get_resolution)
+        self.btn_change_res.pack()
 
     def get_resolution(self):
         resolution = self.input_res.get()
-        if resolution != "" and 2 < len(resolution) < 10 and resolution.find('x') > 0:
+        if resolution != "" and 4 < len(resolution) < 10 and resolution.find('x') > 0:
             self.geometry(resolution)
         else:
             messagebox.showwarning("Erreur", "Ce n'est pas une résolution correct !")
