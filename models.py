@@ -289,6 +289,7 @@ class PresidentGame:
         self.is_first_game = True
 
     def next_player(self):
+        print(self.players)
         while not self.round.is_ended() and not self.last_one_player():
             # si le joueur à encore des cartes en main
             if len(self.players[self.round.current_player].hand) > 0:
@@ -509,9 +510,8 @@ class PresidentGame:
             return
         # si une carte de même symbole est joué, le joueur suivant passe sont tour
         if self.round.last_play()[0].symbol == self.round.cards_on_table[len(self.round.cards_on_table) - 2][0].symbol and len(self.round.cards_on_table) > 1:
-            print('le joueur suivant passe sont tour')
-            #self.round.current_player = self.current_player + 1 % len(self.players)
-            self.round.set_current_player(self.round.current_player + 1 % len(self.players))
+            print("{} passe son tour :-("  .format(self.players[self.round.current_player].name))
+            self.round.set_current_player((self.round.current_player + 1) % len(self.players))
 
     @property
     def players(self):
