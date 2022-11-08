@@ -306,7 +306,7 @@ class PresidentGame:
                     self.set_role(self.round.current_player)
 
             self.round.set_current_player((self.round.current_player + 1) % len(self.players))
-            self.round.test_rules()
+            self.test_rules()
 
     def ia_play(self):
         if self.round.is_started:
@@ -354,9 +354,7 @@ class PresidentGame:
                 # on refait la demande
                 while choice_nb_cards == '' or self.main_player.has_symbol(
                         choice) < choice_nb_cards or choice_nb_cards < 1:
-                    choice_nb_cards = input(f'How many {choice} do you want to play ?')
-                    if choice_nb_cards != '':
-                        choice_nb_cards = current_player.ask_number_of_card_to_play(choice)
+                    choice_nb_cards = current_player.ask_number_of_card_to_play(choice)
             # le joueur à la carte en un seul exemplaire, on ne demande pas le nombre de
             # cartes qu'il veut poser
             else:
@@ -503,6 +501,18 @@ class PresidentGame:
                 players_left += 1
         return players_left <= 1
 
+    def test_rules(self):
+        # si quelqu'un joue un ou plusieurs 2, le tour est fini et il prend la main
+        if self.round.last_play()[0].symbol == "2":
+            self.round.set_current_player(self.round.last_player)
+            print("le 2 remporte la main !!")
+            return
+        # si une carte de même symbole est joué, le joueur suivant passe sont tour
+        if self.round.last_play()[0].symbol == self.round.cards_on_table[len(self.round.cards_on_table) - 2][0].symbol and len(self.round.cards_on_table) > 1:
+            print('le joueur suivant passe sont tour')
+            #self.round.current_player = self.current_player + 1 % len(self.players)
+            self.round.set_current_player(self.round.current_player + 1 % len(self.players))
+
     @property
     def players(self):
         return self.__players
@@ -535,11 +545,7 @@ class Round:
         self.__last_player = -1
         self.__is_started = False
         self.__cards_on_table = []
-    def test_rules(self):
-        if self.last_play()[0].symbol == "2":
-            self.__current_player = self.__last_player
-        if self.last_play()[0].symbol == self.cards_on_table[len(self.cards_on_table) - 2][0].symbol and len(self.__cards_on_table) > 1:
-            print('le joueur suivant passe sont tour')
+
     def last_play(self):
         return self.cards_on_table[len(self.__cards_on_table) - 1]
 
