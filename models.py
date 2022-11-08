@@ -626,9 +626,10 @@ class Window(Tk):
         super().__init__()
         self.title('Jeu du président')
         self.configure(bg='black')
-        self.geometry('1600x900')
+        self.geometry('1920x1080')
         self.resizable(height=False, width=False)
         self.bg_menu = PhotoImage(file="assets/president_game.png")
+        self.bg_play = PhotoImage(file="assets/poker_table.png")
         self.home_page()
         self.input_res = None
         self.messagebox = None
@@ -641,27 +642,39 @@ class Window(Tk):
         self.home = Frame(self, bg="black")
         self.home.pack()
 
-        self.btn_play = Button(self.home, text="Jouer", command=self.hide_home_page)
+        self.btn_play = Button(self.home, text="Jouer", command=lambda: [self.play_page(), self.hide_home_page()])
         self.btn_play.pack()
 
         self.btn_parameters = Button(self.home, text="Paramètres",
                                      command=lambda: [self.parameters_page(), self.hide_home_page()])
         self.btn_parameters.pack()
 
+    def play_page(self):
+        self.bg_game = Label(self, image=self.bg_play)
+        self.bg_game.place(x=0, y=0)
+
+        self.play = Frame(self, bg="black")
+        self.play.pack()
+
     def parameters_page(self):
+        self.bg_home = Label(self, image=self.bg_menu)
+        self.bg_home.place(x=0, y=0)
+
         self.parameters = Frame(self, bg="black")
         self.parameters.pack()
 
         self.ask_geometry()
+        self.ask_player()
+        self.ask_name()
 
         self.back_btn = Button(self.parameters, text=u'\u21a9', command=lambda: [self.home_page(), self.hide_parameters_page()])
         self.back_btn.pack(anchor="w", side="bottom", padx=10, pady=10)
 
     def hide_home_page(self):
-        self.home.pack_forget()
+        self.home.destroy()
 
     def hide_parameters_page(self):
-        self.parameters.pack_forget()
+        self.parameters.destroy()
 
     def ask_geometry(self):
         self.parameters = Frame(self, bg="black")
@@ -690,3 +703,32 @@ class Window(Tk):
 
     def set_resolution(self, res):
         self.geometry(res)
+
+    def ask_player(self):
+        self.parameters = Frame(self, bg="black")
+        self.parameters.pack()
+
+        self.player_label = Label(self.parameters, text="Combien de joueur souhaitez-vous dans vos parties ?")
+        self.player_label.pack()
+
+        self.input_player = Entry(self.parameters)
+        self.input_player.pack()
+
+        self.btn_player = Button(self.parameters, text="Valider", command=self.set_player)
+        self.btn_player.pack(side=TOP, padx=50, pady=10)
+
+    def ask_name(self):
+        self.name_label = Label(self.parameters, text="Quel prénom souhaitez-vous utiliser pour vos parties ?")
+        self.name_label.pack()
+
+        self.input_name = Entry(self.parameters)
+        self.input_name.pack()
+
+        self.btn_name = Button(self.parameters, text="Valider", command=self.set_name)
+        self.btn_name.pack(side=TOP, padx=50, pady=10)
+
+    def set_player(self):
+        print(self.input_player.get())
+
+    def set_name(self):
+        print(self.input_name.get())
