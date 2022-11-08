@@ -628,57 +628,64 @@ class Window(Tk):
         self.configure(bg='black')
         self.geometry('1600x900')
         self.resizable(height=False, width=False)
+        self.bg_menu = PhotoImage(file="assets/president_game.png")
         self.home_page()
         self.input_res = None
         self.messagebox = None
         self.mainloop()
 
     def home_page(self):
-        self.btn_play = Button(self, text="Jouer", command=self.hide_home_page)
+        self.bg_home = Label(self, image=self.bg_menu)
+        self.bg_home.place(x=0, y=0)
+
+        self.home = Frame(self, bg="black")
+        self.home.pack()
+
+        self.btn_play = Button(self.home, text="Jouer", command=self.hide_home_page)
         self.btn_play.pack()
-        self.btn_parameters = Button(self, text="Paramètres",
+
+        self.btn_parameters = Button(self.home, text="Paramètres",
                                      command=lambda: [self.parameters_page(), self.hide_home_page()])
         self.btn_parameters.pack()
 
     def parameters_page(self):
+        self.parameters = Frame(self, bg="black")
+        self.parameters.pack()
+
         self.ask_geometry()
-        self.back_btn = Button(self, text=u'\u21a9', command=lambda: [self.home_page(), self.hide_parameters_page()])
+
+        self.back_btn = Button(self.parameters, text=u'\u21a9', command=lambda: [self.home_page(), self.hide_parameters_page()])
         self.back_btn.pack(anchor="w", side="bottom", padx=10, pady=10)
 
     def hide_home_page(self):
-        self.btn_play.pack_forget()
-        self.btn_parameters.pack_forget()
+        self.home.pack_forget()
 
     def hide_parameters_page(self):
-        self.res_label.pack_forget()
-        self.btn_res_1600x900.pack_forget()
-        self.btn_res_1280x720.pack_forget()
-        self.btn_res_1440x900.pack_forget()
-        self.btn_res_1536x864.pack_forget()
-        self.btn_res_1366x768.pack_forget()
-        self.btn_res_1920x1080.pack_forget()
-        self.back_btn.pack_forget()
+        self.parameters.pack_forget()
 
     def ask_geometry(self):
-        self.res_label = Label(self, text="Quelle résolution souhaitez-vous ?")
+        self.parameters = Frame(self, bg="black")
+        self.parameters.pack()
+
+        self.res_label = Label(self.parameters, text="Quelle résolution souhaitez-vous ?")
         self.res_label.pack()
 
-        self.btn_res_1600x900 = Button(self, text="1600x900", command=lambda: self.set_resolution('1600x900'))
+        self.btn_res_1600x900 = Button(self.parameters, text="1600x900", command=lambda: self.set_resolution('1600x900'))
         self.btn_res_1600x900.pack()
 
-        self.btn_res_1280x720 = Button(self, text="1280x720", command=lambda: self.set_resolution('1280x720'))
+        self.btn_res_1280x720 = Button(self.parameters, text="1280x720", command=lambda: self.set_resolution('1280x720'))
         self.btn_res_1280x720.pack()
 
-        self.btn_res_1440x900 = Button(self, text="1440x900", command=lambda: self.set_resolution('1440x900'))
+        self.btn_res_1440x900 = Button(self.parameters, text="1440x900", command=lambda: self.set_resolution('1440x900'))
         self.btn_res_1440x900.pack()
 
-        self.btn_res_1536x864 = Button(self, text="1536x864", command=lambda: self.set_resolution('1536x864'))
+        self.btn_res_1536x864 = Button(self.parameters, text="1536x864", command=lambda: self.set_resolution('1536x864'))
         self.btn_res_1536x864.pack()
 
-        self.btn_res_1366x768 = Button(self, text="1366x768", command=lambda: self.set_resolution('1366x768'))
+        self.btn_res_1366x768 = Button(self.parameters, text="1366x768", command=lambda: self.set_resolution('1366x768'))
         self.btn_res_1366x768.pack()
 
-        self.btn_res_1920x1080 = Button(self, text="1920x1080", command=lambda: self.set_resolution('1920x1080'))
+        self.btn_res_1920x1080 = Button(self.parameters, text="1920x1080", command=lambda: self.set_resolution('1920x1080'))
         self.btn_res_1920x1080.pack()
 
     def set_resolution(self, res):
