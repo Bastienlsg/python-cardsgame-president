@@ -577,13 +577,15 @@ class Window(Tk):
     def __init__(self):
         super().__init__()
         self.title('Jeu du président')
-        icon = PhotoImage(file='assets/icon.png')
-        self.iconphoto(False, icon)
-        bg_menu = PhotoImage(file="assets/president_game.jpg.png")
-        bg_game = PhotoImage(file="assets/poker_top.jpg")
-        self.geometry('500x250')
+        self.configure(bg='black')
+        self.geometry('1600x900')
+        self.resizable(height=False, width=False)
         self.home_page()
+        self.bg_menu = PhotoImage(file="assets/president_game.png")
+        # self.bg_game = PhotoImage(file="assets/poker_top.png")
         self.input_res = None
+        self.messagebox = None
+        self.mainloop()
 
     def home_page(self):
         self.btn_play = Button(self, text="Jouer", command=self.hide_home_page)
@@ -592,32 +594,46 @@ class Window(Tk):
                                      command=lambda: [self.parameters_page(), self.hide_home_page()])
         self.btn_parameters.pack()
 
-    def hide_home_page(self):
-        self.btn_parameters.pack_forget()
-        self.btn_play.pack_forget()
-
     def parameters_page(self):
         self.ask_geometry()
         self.back_btn = Button(self, text=u'\u21a9', command=lambda: [self.home_page(), self.hide_parameters_page()])
         self.back_btn.pack(anchor="w", side="bottom", padx=10, pady=10)
 
+    def hide_home_page(self):
+        self.btn_play.pack_forget()
+        self.btn_parameters.pack_forget()
+
     def hide_parameters_page(self):
         self.res_label.pack_forget()
-        self.input_res.pack_forget()
-        self.btn_change_res.pack_forget()
+        self.btn_res_1600x900.pack_forget()
+        self.btn_res_1280x720.pack_forget()
+        self.btn_res_1440x900.pack_forget()
+        self.btn_res_1536x864.pack_forget()
+        self.btn_res_1366x768.pack_forget()
+        self.btn_res_1920x1080.pack_forget()
         self.back_btn.pack_forget()
 
     def ask_geometry(self):
         self.res_label = Label(self, text="Quelle résolution souhaitez-vous ?")
         self.res_label.pack()
-        self.input_res = Entry(self, name="resolution")
-        self.input_res.pack()
-        self.btn_change_res = Button(self, text="Changer", command=self.get_resolution)
-        self.btn_change_res.pack()
 
-    def get_resolution(self):
-        resolution = self.input_res.get()
-        if resolution != "" and 4 < len(resolution) < 10 and resolution.find('x') > 0:
-            self.geometry(resolution)
-        else:
-            messagebox.showwarning("Erreur", "Ce n'est pas une résolution correct !")
+        self.btn_res_1600x900 = Button(self, text="1600x900", command=lambda: self.set_resolution('1600x900'))
+        self.btn_res_1600x900.pack()
+
+        self.btn_res_1280x720 = Button(self, text="1280x720", command=lambda: self.set_resolution('1280x720'))
+        self.btn_res_1280x720.pack()
+
+        self.btn_res_1440x900 = Button(self, text="1440x900", command=lambda: self.set_resolution('1440x900'))
+        self.btn_res_1440x900.pack()
+
+        self.btn_res_1536x864 = Button(self, text="1536x864", command=lambda: self.set_resolution('1536x864'))
+        self.btn_res_1536x864.pack()
+
+        self.btn_res_1366x768 = Button(self, text="1366x768", command=lambda: self.set_resolution('1366x768'))
+        self.btn_res_1366x768.pack()
+
+        self.btn_res_1920x1080 = Button(self, text="1920x1080", command=lambda: self.set_resolution('1920x1080'))
+        self.btn_res_1920x1080.pack()
+
+    def set_resolution(self, res):
+        self.geometry(res)
