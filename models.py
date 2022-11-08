@@ -23,8 +23,7 @@ VALUES = {
 
 def value_exist(value):
     """ retourne la valeur uppercase s'il elle éxiste sinon None """
-    print("test regex")
-    pattern_letter = re.compile("^[VDRAvdra]$")
+    pattern_letter = re.compile("^[VDRAvdrapP]$")
     pattern_number = re.compile("^[0-9]$")
 
     if pattern_letter.match(value) or pattern_number.match(value) or value == '10':
@@ -204,18 +203,27 @@ class HumanPlayer(Player):
         return self.play(choice, 1)[0]
 
     def ask_card_to_play(self):
+        """ demande au joueur la carte qu'il veut joueur, retourne le symbol """
         choice = None
         print('Your current deck is : ')
         print(self.hand)
         print("\n")
-        while choice is None or self.has_symbol(choice) < 1:
+        while (choice is None or self.has_symbol(choice) < 1) and choice != "P":
             choice = input('Quelle carte voulez vous jouer  (passer : p)?')
             choice = value_exist(choice)
 
         return choice
 
-    def ask_number_of_card_to_play(self):
-        print("ask number of card to play")
+    def ask_number_of_card_to_play(self, symbol):
+        """ demande au joueur humain le nombre de fois qu'il veut joueur la carte en paramètre
+         retourne la quantité qu'il veut joueur"""
+        nb_card = None
+        while nb_card is None or nb_card > self.has_symbol(symbol):
+            try:
+                nb_card = int(input("Combien de {} voulez vous jouer ?".format(symbol)))
+            except:
+                nb_card = None
+        return nb_card
 
     def give_chosen_card(self, player, nb_cards):
         for x in range(0, nb_cards):
@@ -312,9 +320,10 @@ class PresidentGame:
         print(f"{self.players[self.round.current_player].name} plays \t {plays}")
 
     def human_play(self):
-        print('Your current deck is : ')
-        print(self.main_player.hand)
-        print("\n")
+        current_player = self.players[self.round.current_player]
+        #print('Your current deck is : ')
+        #print(self.main_player.hand)
+        #print("\n")
         # si il y à déjà des cartes en jeux
         # le joueur est contraint de jouer un certain nombre de cartes
         # et une valeur minimum
@@ -328,20 +337,20 @@ class PresidentGame:
                     not (self.round.cards_on_table[0].is_le(choice) and len(self.round.cards_on_table) <=
                          self.players[
                              self.round.current_player].has_symbol(choice)):
-                choice = input('What value do you wish to play ? pass(p)')
-                if choice == 'p':
+                choice = current_player.ask_card_to_play()
+                if choice == 'P':
                     break
                 choice_nb_cards = len(self.round.cards_on_table)
-        # il n'y a pas de carte en jeu, pas de contrainte de valeur ou de nombre de cartes
+            # il n'y a pas de carte en jeu, pas de contrainte de valeur ou de nombre de cartes
         else:
             choice = '0'
             choice_nb_cards = 0
             while self.main_player.has_symbol(choice) == 0:
-                choice = input('What value do you wish to play ?')
+                choice = current_player.ask_card_to_play()
             # si le joueur à plusieur fois la même carte, on lui demande le nombre de cartes
             # qu'il veut poser
-            if self.main_player.has_symbol(choice) != 1:
-                # tant que le nombre demander est supérieur au nombres de cartes possédé,
+            if current_player.has_symbol(choice) != 1:
+                # tant que le nombre demandé est supérieur au nombres de cartes possédé,
                 # on refait la demande
                 while choice_nb_cards == '' or self.main_player.has_symbol(
                         choice) < choice_nb_cards or choice_nb_cards < 1:
