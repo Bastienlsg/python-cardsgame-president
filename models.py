@@ -23,8 +23,7 @@ VALUES = {
 
 def value_exist(value):
     """ retourne la valeur uppercase s'il elle éxiste sinon None """
-    print("test regex")
-    pattern_letter = re.compile("^[VDRAvdra]$")
+    pattern_letter = re.compile("^[VDRAvdrapP]$")
     pattern_number = re.compile("^[0-9]$")
 
     if pattern_letter.match(value) or pattern_number.match(value) or value == '10':
@@ -204,18 +203,27 @@ class HumanPlayer(Player):
         return self.play(choice, 1)[0]
 
     def ask_card_to_play(self):
+        """ demande au joueur la carte qu'il veut joueur, retourne le symbol """
         choice = None
         print('Your current deck is : ')
         print(self.hand)
         print("\n")
-        while choice is None or self.has_symbol(choice) < 1:
+        while (choice is None or self.has_symbol(choice) < 1) and choice != "P":
             choice = input('Quelle carte voulez vous jouer  (passer : p)?')
             choice = value_exist(choice)
 
         return choice
 
-    def ask_number_of_card_to_play(self):
-        print("ask number of card to play")
+    def ask_number_of_card_to_play(self, symbol):
+        """ demande au joueur humain le nombre de fois qu'il veut joueur la carte en paramètre
+         retourne la quantité qu'il veut joueur"""
+        nb_card = None
+        while nb_card is None or nb_card > self.has_symbol(symbol):
+            try:
+                nb_card = int(input("Combien de {} voulez vous jouer ?".format(symbol)))
+            except:
+                nb_card = None
+        return nb_card
 
     def give_chosen_card(self, player, nb_cards):
         for x in range(0, nb_cards):
@@ -291,7 +299,6 @@ class PresidentGame:
                     self.human_play()
                 else:
                     # C'est à L'IA de jouer
-                    # print('symbol : {}  /  nb cartes : {}' .format(self.round.cards_on_table[0].symbol, nb_cards))
                     self.ia_play()
 
                 # si le joueur ou l'iA vient de finir sa main, un role lui est attribué
@@ -299,11 +306,12 @@ class PresidentGame:
                     self.set_role(self.round.current_player)
 
             self.round.set_current_player((self.round.current_player + 1) % len(self.players))
+            self.round.test_rules()
 
     def ia_play(self):
         if self.round.is_started:
-            plays = self.players[self.round.current_player].play(self.round.cards_on_table[0].symbol,
-                                                                 len(self.round.cards_on_table))
+            plays = self.players[self.round.current_player].play(self.round.last_play()[0].symbol,
+                                                                 len(self.round.last_play()))
         else:
             plays = self.players[self.round.current_player].play('3', 1)
         # si le nombre de carte joué est supèrieur à 0 le dernier joueur ayant joué est le joueur actuel
@@ -312,9 +320,10 @@ class PresidentGame:
         print(f"{self.players[self.round.current_player].name} plays \t {plays}")
 
     def human_play(self):
-        print('Your current deck is : ')
-        print(self.main_player.hand)
-        print("\n")
+        current_player = self.players[self.round.current_player]
+        #print('Your current deck is : ')
+        #print(self.main_player.hand)
+        #print("\n")
         # si il y à déjà des cartes en jeux
         # le joueur est contraint de jouer un certain nombre de cartes
         # et une valeur minimum
@@ -325,29 +334,29 @@ class PresidentGame:
             # et que la valeur en question n'est pas en nombre supérieur ou égale dans le jeu du joueur
             # par rapport au nombre de cartes sur la table, on demande une valeur
             while choice == '' or choice is None or \
-                    not (self.round.cards_on_table[0].is_le(choice) and len(self.round.cards_on_table) <=
+                    not (self.round.last_play()[0].is_le(choice) and len(self.round.last_play()) <=
                          self.players[
                              self.round.current_player].has_symbol(choice)):
-                choice = input('What value do you wish to play ? pass(p)')
-                if choice == 'p':
+                choice = current_player.ask_card_to_play()
+                if choice == 'P':
                     break
-                choice_nb_cards = len(self.round.cards_on_table)
-        # il n'y a pas de carte en jeu, pas de contrainte de valeur ou de nombre de cartes
+                choice_nb_cards = len(self.round.last_play())
+            # il n'y a pas de carte en jeu, pas de contrainte de valeur ou de nombre de cartes
         else:
             choice = '0'
             choice_nb_cards = 0
             while self.main_player.has_symbol(choice) == 0:
-                choice = input('What value do you wish to play ?')
+                choice = current_player.ask_card_to_play()
             # si le joueur à plusieur fois la même carte, on lui demande le nombre de cartes
             # qu'il veut poser
-            if self.main_player.has_symbol(choice) != 1:
-                # tant que le nombre demander est supérieur au nombres de cartes possédé,
+            if current_player.has_symbol(choice) != 1:
+                # tant que le nombre demandé est supérieur au nombres de cartes possédé,
                 # on refait la demande
                 while choice_nb_cards == '' or self.main_player.has_symbol(
                         choice) < choice_nb_cards or choice_nb_cards < 1:
                     choice_nb_cards = input(f'How many {choice} do you want to play ?')
                     if choice_nb_cards != '':
-                        choice_nb_cards = int(choice_nb_cards)
+                        choice_nb_cards = current_player.ask_number_of_card_to_play(choice)
             # le joueur à la carte en un seul exemplaire, on ne demande pas le nombre de
             # cartes qu'il veut poser
             else:
@@ -518,20 +527,28 @@ class Round:
 
     def __init__(self):
         self.__is_started = False
-        self.__cards_on_table = None
+        self.__cards_on_table = []
         self.__current_player = 0
         self.__last_player = 1
 
     def next_round(self):
         """ enlève les cartes de la table, reset le flag "is_started" à False et paramètre "last_player à une valeur qui ne peut pas être égale au "current_player" """
         self.__last_player = -1
+        self.__current_player = 1
         self.__is_started = False
-        self.__cards_on_table = None
+        self.__cards_on_table = []
+    def test_rules(self):
+        if self.last_play()[0].symbol == "2":
+            self.__current_player = self.__last_player
+        if self.last_play()[0].symbol == self.cards_on_table[len(self.cards_on_table) - 2][0].symbol and len(self.__cards_on_table) > 1:
+            print('le joueur suivant passe sont tour')
+    def last_play(self):
+        return self.cards_on_table[len(self.__cards_on_table) - 1]
 
     def update(self, last_player, plays):
         """ met à jour le last_player et les cartes sur la tables avec les paramètres envoyés, passe le flag is_started du round à True """
         self.__last_player = last_player
-        self.__cards_on_table = plays
+        self.__cards_on_table.append(plays)
         self.__is_started = True
 
     def is_ended(self):
@@ -577,15 +594,13 @@ class Window(Tk):
     def __init__(self):
         super().__init__()
         self.title('Jeu du président')
-        self.configure(bg='black')
-        self.geometry('1600x900')
-        self.resizable(height=False, width=False)
+        icon = PhotoImage(file='assets/icon.png')
+        self.iconphoto(False, icon)
+        #bg_menu = PhotoImage(file="assets/president_game.jpg.png")
+        #bg_game = PhotoImage(file="assets/poker_top.jpg")
+        self.geometry('500x250')
         self.home_page()
-        self.bg_menu = PhotoImage(file="assets/president_game.png")
-        # self.bg_game = PhotoImage(file="assets/poker_top.png")
         self.input_res = None
-        self.messagebox = None
-        self.mainloop()
 
     def home_page(self):
         self.btn_play = Button(self, text="Jouer", command=self.hide_home_page)
@@ -594,46 +609,32 @@ class Window(Tk):
                                      command=lambda: [self.parameters_page(), self.hide_home_page()])
         self.btn_parameters.pack()
 
+    def hide_home_page(self):
+        self.btn_parameters.pack_forget()
+        self.btn_play.pack_forget()
+
     def parameters_page(self):
         self.ask_geometry()
         self.back_btn = Button(self, text=u'\u21a9', command=lambda: [self.home_page(), self.hide_parameters_page()])
         self.back_btn.pack(anchor="w", side="bottom", padx=10, pady=10)
 
-    def hide_home_page(self):
-        self.btn_play.pack_forget()
-        self.btn_parameters.pack_forget()
-
     def hide_parameters_page(self):
         self.res_label.pack_forget()
-        self.btn_res_1600x900.pack_forget()
-        self.btn_res_1280x720.pack_forget()
-        self.btn_res_1440x900.pack_forget()
-        self.btn_res_1536x864.pack_forget()
-        self.btn_res_1366x768.pack_forget()
-        self.btn_res_1920x1080.pack_forget()
+        self.input_res.pack_forget()
+        self.btn_change_res.pack_forget()
         self.back_btn.pack_forget()
 
     def ask_geometry(self):
         self.res_label = Label(self, text="Quelle résolution souhaitez-vous ?")
         self.res_label.pack()
+        self.input_res = Entry(self, name="resolution")
+        self.input_res.pack()
+        self.btn_change_res = Button(self, text="Changer", command=self.get_resolution)
+        self.btn_change_res.pack()
 
-        self.btn_res_1600x900 = Button(self, text="1600x900", command=lambda: self.set_resolution('1600x900'))
-        self.btn_res_1600x900.pack()
-
-        self.btn_res_1280x720 = Button(self, text="1280x720", command=lambda: self.set_resolution('1280x720'))
-        self.btn_res_1280x720.pack()
-
-        self.btn_res_1440x900 = Button(self, text="1440x900", command=lambda: self.set_resolution('1440x900'))
-        self.btn_res_1440x900.pack()
-
-        self.btn_res_1536x864 = Button(self, text="1536x864", command=lambda: self.set_resolution('1536x864'))
-        self.btn_res_1536x864.pack()
-
-        self.btn_res_1366x768 = Button(self, text="1366x768", command=lambda: self.set_resolution('1366x768'))
-        self.btn_res_1366x768.pack()
-
-        self.btn_res_1920x1080 = Button(self, text="1920x1080", command=lambda: self.set_resolution('1920x1080'))
-        self.btn_res_1920x1080.pack()
-
-    def set_resolution(self, res):
-        self.geometry(res)
+    def get_resolution(self):
+        resolution = self.input_res.get()
+        if resolution != "" and 4 < len(resolution) < 10 and resolution.find('x') > 0:
+            self.geometry(resolution)
+        else:
+            messagebox.showwarning("Erreur", "Ce n'est pas une résolution correct !")
