@@ -508,10 +508,30 @@ class PresidentGame:
             self.round.set_current_player(self.round.last_player)
             print("le 2 remporte la main !!")
             return
+
+        # si 4 carte de symbole identique son posé sur le dessus du paquet, le joueur ayant posé la dernière carte remporte la main
+        i = 0
+        nb_card_same_symbol = 0
+        symbol = self.round.last_play()[0].symbol
+        while i < 4 and self.round.nb_cards_on_table() > 3:
+            for sets in self.round.cards_on_table:
+                for card in sets:
+                    if card.symbol == symbol:
+                        nb_card_same_symbol += 1
+                    i += 1
+        if nb_card_same_symbol == 4:
+            print("les quatres même cartes ont été joué d'affilé, {} remporte la main !!!".format(
+                self.players[self.round.last_player].name))
+            self.round.set_current_player(self.round.last_player)
+            return
+
         # si une carte de même symbole est joué, le joueur suivant passe sont tour
         if self.round.last_play()[0].symbol == self.round.cards_on_table[len(self.round.cards_on_table) - 2][0].symbol and len(self.round.cards_on_table) > 1:
             print("{} passe son tour :-("  .format(self.players[self.round.current_player].name))
             self.round.set_current_player((self.round.current_player + 1) % len(self.players))
+
+
+
 
     @property
     def players(self):
@@ -540,6 +560,13 @@ class Round:
         self.__current_player = 0
         self.__last_player = 1
 
+    def nb_cards_on_table(self):
+        """ retourne le nombre de cartes en jeu """
+        nb_cards = 0
+        for sets in self.__cards_on_table:
+            for card in sets:
+                nb_cards += 1
+        return nb_cards
     def next_round(self):
         """ enlève les cartes de la table, reset le flag "is_started" à False et paramètre "last_player à une valeur qui ne peut pas être égale au "current_player" """
         self.__last_player = -1
