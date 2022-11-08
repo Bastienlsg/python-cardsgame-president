@@ -289,6 +289,7 @@ class PresidentGame:
         self.is_first_game = True
 
     def next_player(self):
+        print(self.players)
         while not self.round.is_ended() and not self.last_one_player():
             # si le joueur à encore des cartes en main
             if len(self.players[self.round.current_player].hand) > 0:
@@ -306,7 +307,7 @@ class PresidentGame:
                     self.set_role(self.round.current_player)
 
             self.round.set_current_player((self.round.current_player + 1) % len(self.players))
-            self.round.test_rules()
+            self.test_rules()
 
     def ia_play(self):
         if self.round.is_started:
@@ -354,9 +355,7 @@ class PresidentGame:
                 # on refait la demande
                 while choice_nb_cards == '' or self.main_player.has_symbol(
                         choice) < choice_nb_cards or choice_nb_cards < 1:
-                    choice_nb_cards = input(f'How many {choice} do you want to play ?')
-                    if choice_nb_cards != '':
-                        choice_nb_cards = current_player.ask_number_of_card_to_play(choice)
+                    choice_nb_cards = current_player.ask_number_of_card_to_play(choice)
             # le joueur à la carte en un seul exemplaire, on ne demande pas le nombre de
             # cartes qu'il veut poser
             else:
@@ -426,7 +425,6 @@ class PresidentGame:
                     self.list_role[x] = "Vice-Trouduc"
                 else:
                     self.list_role[x] = None
-        print(self.list_role)
 
     def players_active(self):
         """ retourne le nombre de joueurs actif (encore avec des cartes en main) """
@@ -504,6 +502,37 @@ class PresidentGame:
                 players_left += 1
         return players_left <= 1
 
+    def test_rules(self):
+        # si quelqu'un joue un ou plusieurs 2, le tour est fini et il prend la main
+        if self.round.last_play()[0].symbol == "2":
+            self.round.set_current_player(self.round.last_player)
+            print("le 2 remporte la main !!")
+            return
+
+        # si 4 carte de symbole identique son posé sur le dessus du paquet, le joueur ayant posé la dernière carte remporte la main
+        i = 0
+        nb_card_same_symbol = 0
+        symbol = self.round.last_play()[0].symbol
+        while i < 4 and self.round.nb_cards_on_table() > 3:
+            for sets in self.round.cards_on_table:
+                for card in sets:
+                    if card.symbol == symbol:
+                        nb_card_same_symbol += 1
+                    i += 1
+        if nb_card_same_symbol == 4:
+            print("les quatres même cartes ont été joué d'affilé, {} remporte la main !!!".format(
+                self.players[self.round.last_player].name))
+            self.round.set_current_player(self.round.last_player)
+            return
+
+        # si une carte de même symbole est joué, le joueur suivant passe sont tour
+        if self.round.last_play()[0].symbol == self.round.cards_on_table[len(self.round.cards_on_table) - 2][0].symbol and len(self.round.cards_on_table) > 1:
+            print("{} passe son tour :-("  .format(self.players[self.round.current_player].name))
+            self.round.set_current_player((self.round.current_player + 1) % len(self.players))
+
+
+
+
     @property
     def players(self):
         return self.__players
@@ -531,17 +560,19 @@ class Round:
         self.__current_player = 0
         self.__last_player = 1
 
+    def nb_cards_on_table(self):
+        """ retourne le nombre de cartes en jeu """
+        nb_cards = 0
+        for sets in self.__cards_on_table:
+            for card in sets:
+                nb_cards += 1
+        return nb_cards
     def next_round(self):
         """ enlève les cartes de la table, reset le flag "is_started" à False et paramètre "last_player à une valeur qui ne peut pas être égale au "current_player" """
         self.__last_player = -1
-        self.__current_player = 1
         self.__is_started = False
         self.__cards_on_table = []
-    def test_rules(self):
-        if self.last_play()[0].symbol == "2":
-            self.__current_player = self.__last_player
-        if self.last_play()[0].symbol == self.cards_on_table[len(self.cards_on_table) - 2][0].symbol and len(self.__cards_on_table) > 1:
-            print('le joueur suivant passe sont tour')
+
     def last_play(self):
         return self.cards_on_table[len(self.__cards_on_table) - 1]
 
@@ -594,13 +625,13 @@ class Window(Tk):
     def __init__(self):
         super().__init__()
         self.title('Jeu du président')
-        icon = PhotoImage(file='assets/icon.png')
-        self.iconphoto(False, icon)
-        #bg_menu = PhotoImage(file="assets/president_game.jpg.png")
-        #bg_game = PhotoImage(file="assets/poker_top.jpg")
-        self.geometry('500x250')
+        self.configure(bg='black')
+        self.geometry('1600x900')
+        self.resizable(height=False, width=False)
         self.home_page()
         self.input_res = None
+        self.messagebox = None
+        self.mainloop()
 
     def home_page(self):
         self.btn_play = Button(self, text="Jouer", command=self.hide_home_page)
@@ -609,32 +640,46 @@ class Window(Tk):
                                      command=lambda: [self.parameters_page(), self.hide_home_page()])
         self.btn_parameters.pack()
 
-    def hide_home_page(self):
-        self.btn_parameters.pack_forget()
-        self.btn_play.pack_forget()
-
     def parameters_page(self):
         self.ask_geometry()
         self.back_btn = Button(self, text=u'\u21a9', command=lambda: [self.home_page(), self.hide_parameters_page()])
         self.back_btn.pack(anchor="w", side="bottom", padx=10, pady=10)
 
+    def hide_home_page(self):
+        self.btn_play.pack_forget()
+        self.btn_parameters.pack_forget()
+
     def hide_parameters_page(self):
         self.res_label.pack_forget()
-        self.input_res.pack_forget()
-        self.btn_change_res.pack_forget()
+        self.btn_res_1600x900.pack_forget()
+        self.btn_res_1280x720.pack_forget()
+        self.btn_res_1440x900.pack_forget()
+        self.btn_res_1536x864.pack_forget()
+        self.btn_res_1366x768.pack_forget()
+        self.btn_res_1920x1080.pack_forget()
         self.back_btn.pack_forget()
 
     def ask_geometry(self):
         self.res_label = Label(self, text="Quelle résolution souhaitez-vous ?")
         self.res_label.pack()
-        self.input_res = Entry(self, name="resolution")
-        self.input_res.pack()
-        self.btn_change_res = Button(self, text="Changer", command=self.get_resolution)
-        self.btn_change_res.pack()
 
-    def get_resolution(self):
-        resolution = self.input_res.get()
-        if resolution != "" and 4 < len(resolution) < 10 and resolution.find('x') > 0:
-            self.geometry(resolution)
-        else:
-            messagebox.showwarning("Erreur", "Ce n'est pas une résolution correct !")
+        self.btn_res_1600x900 = Button(self, text="1600x900", command=lambda: self.set_resolution('1600x900'))
+        self.btn_res_1600x900.pack()
+
+        self.btn_res_1280x720 = Button(self, text="1280x720", command=lambda: self.set_resolution('1280x720'))
+        self.btn_res_1280x720.pack()
+
+        self.btn_res_1440x900 = Button(self, text="1440x900", command=lambda: self.set_resolution('1440x900'))
+        self.btn_res_1440x900.pack()
+
+        self.btn_res_1536x864 = Button(self, text="1536x864", command=lambda: self.set_resolution('1536x864'))
+        self.btn_res_1536x864.pack()
+
+        self.btn_res_1366x768 = Button(self, text="1366x768", command=lambda: self.set_resolution('1366x768'))
+        self.btn_res_1366x768.pack()
+
+        self.btn_res_1920x1080 = Button(self, text="1920x1080", command=lambda: self.set_resolution('1920x1080'))
+        self.btn_res_1920x1080.pack()
+
+    def set_resolution(self, res):
+        self.geometry(res)
