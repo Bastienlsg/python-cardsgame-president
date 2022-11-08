@@ -21,6 +21,7 @@ def game_loop(g: PresidentGame):
         g.card_exchange()
 
         # définit le premier joueur de la nouvelle partie
+        print(g.players)
         g.set_first_player()
 
         # boucle à chaque début fois que les cartes sont ramassés et que le nouveau tour démarre
@@ -43,8 +44,8 @@ def game_loop(g: PresidentGame):
 
 
 if __name__ == '__main__':
-    win = Window()
-    win.mainloop()
+    #win = Window()
+    #win.mainloop()
     print(
         """        *********************************************
         *** President : The cards game (TM) v.0.1 ***

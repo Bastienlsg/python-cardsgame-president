@@ -107,6 +107,9 @@ class Card:
     @property
     def symbol(self):
         return self.__symbol
+    @property
+    def color(self):
+        return self.__color
 
     def __repr__(self):
         return f"{self.__symbol} {self.__color}"
@@ -358,7 +361,15 @@ class PresidentGame:
                 if player.role == 1:
                     self.round.set_current_player(self.players.index(player))
                     print("le président est {}, à lui/elle de commencer !!!".format(player.name))
+        else:
+            for player in self.players:
+                for card in player.hand:
+                    if card.symbol == "D" and card.color == '♡':
+                        self.round.set_current_player(self.players.index(player))
+                        print("{} a la dame de coeur, à lui/elle de commencer !!" .format(player.name))
+
         self.is_first_game = False
+
     def card_exchange(self):
         """ procède à l'échange de cartes entres les présidents et les trouducs """
         # si ce n'est pas la première partie alors il y a des rôles et donc des échanges
@@ -458,7 +469,7 @@ class PresidentGame:
         self.__generate_cards()
         giving_card_to_player = 0
         nb_players = len(self.__players)
-        while len(self.__deck.cards) > 44:
+        while len(self.__deck.cards) > 0:
             card = self.__deck.pick_card()
             self.__players[giving_card_to_player].add_to_hand(card)
             giving_card_to_player = (giving_card_to_player + 1) % nb_players
@@ -558,7 +569,6 @@ class Round:
         return self.__is_started
 
 
-
 class Window(Tk):
 
     def __init__(self):
@@ -575,7 +585,8 @@ class Window(Tk):
     def home_page(self):
         self.btn_play = Button(self, text="Jouer", command=self.hide_home_page)
         self.btn_play.pack()
-        self.btn_parameters = Button(self, text="Paramètres", command=lambda: [self.parameters_page(), self.hide_home_page()])
+        self.btn_parameters = Button(self, text="Paramètres",
+                                     command=lambda: [self.parameters_page(), self.hide_home_page()])
         self.btn_parameters.pack()
 
     def hide_home_page(self):
