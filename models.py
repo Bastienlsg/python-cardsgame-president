@@ -310,8 +310,8 @@ class PresidentGame:
 
     def ia_play(self):
         if self.round.is_started:
-            plays = self.players[self.round.current_player].play(self.round.cards_on_table[0].symbol,
-                                                                 len(self.round.cards_on_table))
+            plays = self.players[self.round.current_player].play(self.round.last_play()[0].symbol,
+                                                                 len(self.round.last_play()))
         else:
             plays = self.players[self.round.current_player].play('3', 1)
         # si le nombre de carte joué est supèrieur à 0 le dernier joueur ayant joué est le joueur actuel
@@ -334,13 +334,13 @@ class PresidentGame:
             # et que la valeur en question n'est pas en nombre supérieur ou égale dans le jeu du joueur
             # par rapport au nombre de cartes sur la table, on demande une valeur
             while choice == '' or choice is None or \
-                    not (self.round.cards_on_table[0].is_le(choice) and len(self.round.cards_on_table) <=
+                    not (self.round.last_play()[0].is_le(choice) and len(self.round.last_play()) <=
                          self.players[
                              self.round.current_player].has_symbol(choice)):
                 choice = current_player.ask_card_to_play()
                 if choice == 'P':
                     break
-                choice_nb_cards = len(self.round.cards_on_table)
+                choice_nb_cards = len(self.round.last_play())
             # il n'y a pas de carte en jeu, pas de contrainte de valeur ou de nombre de cartes
         else:
             choice = '0'
@@ -527,7 +527,7 @@ class Round:
 
     def __init__(self):
         self.__is_started = False
-        self.__cards_on_table = None
+        self.__cards_on_table = []
         self.__current_player = 0
         self.__last_player = 1
 
@@ -536,16 +536,19 @@ class Round:
         self.__last_player = -1
         self.__current_player = 1
         self.__is_started = False
-        self.__cards_on_table = None
-
+        self.__cards_on_table = []
     def test_rules(self):
-        if self.__cards_on_table[0].symbol == "2":
+        if self.last_play()[0].symbol == "2":
             self.__current_player = self.__last_player
+        if self.last_play()[0].symbol == self.cards_on_table[len(self.cards_on_table) - 2][0].symbol and len(self.__cards_on_table) > 1:
+            print('le joueur suivant passe sont tour')
+    def last_play(self):
+        return self.cards_on_table[len(self.__cards_on_table) - 1]
 
     def update(self, last_player, plays):
         """ met à jour le last_player et les cartes sur la tables avec les paramètres envoyés, passe le flag is_started du round à True """
         self.__last_player = last_player
-        self.__cards_on_table = plays
+        self.__cards_on_table.append(plays)
         self.__is_started = True
 
     def is_ended(self):
