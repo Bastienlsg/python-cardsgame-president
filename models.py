@@ -1,6 +1,4 @@
 import random
-from tkinter import messagebox
-
 import names
 import re
 from tkinter import *
@@ -272,8 +270,95 @@ class PresidentGame:
 
     def ask_player_number(self):
         """ input console pour demander le nombre de joueur total de la partie """
-        return int(input('Combien de joueur pour cette partie ?'))
+        nb_player = None
+        while nb_player is None or nb_player < 3 or nb_player > 8:
+            try:
+                nb_player = int(input('Combien de joueur pour cette partie ?'))
+            except:
+                nb_player = None
+        return nb_player
 
+    def next_player(self):
+        while not self.round.is_ended() and not self.last_one_player():
+            # si le joueur à encore des cartes en main
+            if len(self.players[self.round.current_player].hand) > 0:
+                # vérification du type de joueur : humain ou IA
+
+                if not isinstance(self.players[self.round.current_player], AIPlayer):
+                    # c'est l'humain qui joue
+                    print('Your current deck is : ')
+                    print(self.main_player.hand)
+                    print("\n")
+                    # si il y à déjà des cartes en jeux
+                    # le joueur est contraint de jouer un certain nombre de cartes
+                    # et une valeur minimum
+                    if self.round.is_started:
+                        choice = None
+                        choice_nb_cards = 0
+                        # tant que la valeur jouée n'est pas supérieur à la valeur de la table
+                        # et que la valeur en question n'est pas en nombre supérieur ou égale dans le jeu du joueur
+                        # par rapport au nombre de cartes sur la table, on demande une valeur
+                        while choice == '' or choice is None or \
+                                not (self.round.cards_on_table[0].is_le(choice) and len(self.round.cards_on_table) <=
+                                     self.players[
+                                         self.round.current_player].has_symbol(choice)):
+                            choice = input('What value do you wish to play ? pass(p)')
+                            if choice == 'p':
+                                break
+                            choice_nb_cards = len(self.round.cards_on_table)
+                    # il n'y a pas de carte en jeu, pas de contrainte de valeur ou de nombre de cartes
+                    else:
+                        choice = '0'
+                        choice_nb_cards = 0
+                        while self.main_player.has_symbol(choice) == 0:
+                            choice = input('What value do you wish to play ?')
+                        # si le joueur à plusieur fois la même carte, on lui demande le nombre de cartes
+                        # qu'il veut poser
+                        if self.main_player.has_symbol(choice) != 1:
+                            # tant que le nombre demander est supérieur au nombres de cartes possédé,
+                            # on refait la demande
+                            while choice_nb_cards == '' or self.main_player.has_symbol(
+                                    choice) < choice_nb_cards or choice_nb_cards < 1:
+                                choice_nb_cards = input(f'How many {choice} do you want to play ?')
+                                if choice_nb_cards != '':
+                                    choice_nb_cards = int(choice_nb_cards)
+                        # le joueur à la carte en un seul exemplaire, on ne demande pas le nombre de
+                        # cartes qu'il veut poser
+                        else:
+                            choice_nb_cards = 1
+
+                    plays = self.main_player.play(choice, choice_nb_cards)
+                    if len(plays) > 0:
+                        self.round.update(self.round.current_player, plays)
+                    print(f"You play {plays}")
+
+                    nb_cards = len(plays)
+                else:
+                    # C'est à L'IA de jouer
+                    # print('symbol : {}  /  nb cartes : {}' .format(self.round.cards_on_table[0].symbol, nb_cards))
+                    if self.round.is_started:
+                        plays = self.players[self.round.current_player].play(self.round.cards_on_table[0].symbol,
+                                                                             len(self.round.cards_on_table))
+                    else:
+                        plays = self.players[self.round.current_player].play('3', 1)
+                    # si le nombre de carte joué est supèrieur à 0 le dernier joueur ayant joué est le joueur actuel
+                    if len(plays) > 0:
+                        self.round.update(self.round.current_player, plays)
+                    print(f"{self.players[self.round.current_player].name} plays \t {plays}")
+
+                # si le joueur ou l'iA vient de finir sa main, un role lui est attribué
+                if len(self.players[self.round.current_player].hand) < 1:
+                    self.set_role(self.round.current_player)
+
+            self.round.set_current_player((self.round.current_player + 1) % len(self.players))
+
+    def set_first_player(self):
+        if not self.is_first_game:
+            for player in self.players:
+                if player.role == 1:
+                    self.round.set_current_player(self.players.index(player))
+                    print("le président est {}, à lui/elle de commencer !!!".format(player.name))
+        self.is_first_game = False
     def card_exchange(self):
         """ procède à l'échange de cartes entres les présidents et les trouducs """
         # si ce n'est pas la première partie alors il y a des rôles et donc des échanges
@@ -287,7 +372,7 @@ class PresidentGame:
             president.give_chosen_card(trouduc, 2)
             trouduc.give_best_card(president, 2)
             # s'il y a plus de 4 joueurs, les vices font également leur echange
-            if len(self.players) > 3:
+            if len(self.players) > 4:
                 for player in self.players:
                     if player.role == 2:
                         vice_president = player
@@ -300,15 +385,15 @@ class PresidentGame:
         """ génere la liste des rôles disponible en fonction du nombre de joueur """
         self.list_role = {1: 'Président'}
         nb_player = len(self.players)
-        # si moins de 4 joueurs : trois rôles : président, trouduc, neutre
-        if nb_player < 4:
+        # si moins de 5 joueurs : trois rôles : président, trouduc, neutre
+        if nb_player < 5:
             for x in range(2, nb_player + 1):
                 if x == nb_player:
                     self.list_role[x] = "Trouduc"
                 else:
                     self.list_role[x] = None
 
-        # si 4 joueurs ou plus : cinq rôles : président + vice, trouduc + vice, neutre
+        # si 5 joueurs ou plus : cinq rôles : président + vice, trouduc + vice, neutre
         else:
             self.list_role[2] = 'Vice-Président'
             for x in range(3, nb_player + 1):
@@ -318,6 +403,7 @@ class PresidentGame:
                     self.list_role[x] = "Vice-Trouduc"
                 else:
                     self.list_role[x] = None
+        print(self.list_role)
 
     def players_active(self):
         """ retourne le nombre de joueurs actif (encore avec des cartes en main) """
@@ -339,14 +425,14 @@ class PresidentGame:
                                                self.list_role[
                                                    self.players[id_player].role]))
 
-            # s'il n'y à plus qu'un rôle à attribuer, c'est le trouduc et la partie est terminé
-            if self.current_role_available == len(self.players):
-                for player in self.players:
-                    if len(player.hand) > 0:
-                        self.is_ended = True
-                        player.role = self.current_role_available
-                        print(
-                            '******** {} est le trouduc !!! '.format(player.name))
+        # s'il n'y à plus qu'un rôle à attribuer, c'est le trouduc et la partie est terminé
+        if self.current_role_available == len(self.players):
+            for player in self.players:
+                if len(player.hand) > 0:
+                    self.is_ended = True
+                    player.role = self.current_role_available
+                    print(
+                        '******** {} est le trouduc !!! '.format(player.name))
 
     def new_game(self):
         """ Réinitialise les rôles disponibles, ditribut les cartes, définis is_ended de PresidentGame à False """
@@ -372,7 +458,7 @@ class PresidentGame:
         self.__generate_cards()
         giving_card_to_player = 0
         nb_players = len(self.__players)
-        while len(self.__deck.cards) > 0:
+        while len(self.__deck.cards) > 44:
             card = self.__deck.pick_card()
             self.__players[giving_card_to_player].add_to_hand(card)
             giving_card_to_player = (giving_card_to_player + 1) % nb_players
@@ -472,6 +558,7 @@ class Round:
         return self.__is_started
 
 
+
 class Window(Tk):
 
     def __init__(self):
@@ -479,30 +566,44 @@ class Window(Tk):
         self.title('Jeu du président')
         icon = PhotoImage(file='assets/icon.png')
         self.iconphoto(False, icon)
+        bg_menu = PhotoImage(file="assets/president_game.jpg.png")
+        bg_game = PhotoImage(file="assets/poker_top.jpg")
         self.geometry('500x250')
         self.home_page()
-        self.btn = None
         self.input_res = None
 
     def home_page(self):
-        self.btn = Button(self, text="go to parameters", command=lambda: [self.parameters_page(), self.hide_home_page()])
-        self.btn.pack()
+        self.btn_play = Button(self, text="Jouer", command=self.hide_home_page)
+        self.btn_play.pack()
+        self.btn_parameters = Button(self, text="Paramètres", command=lambda: [self.parameters_page(), self.hide_home_page()])
+        self.btn_parameters.pack()
 
     def hide_home_page(self):
-        self.btn.pack_forget()
+        self.btn_parameters.pack_forget()
+        self.btn_play.pack_forget()
 
     def parameters_page(self):
         self.ask_geometry()
+        self.back_btn = Button(self, text=u'\u21a9', command=lambda: [self.home_page(), self.hide_parameters_page()])
+        self.back_btn.pack(anchor="w", side="bottom", padx=10, pady=10)
+
+    def hide_parameters_page(self):
+        self.res_label.pack_forget()
+        self.input_res.pack_forget()
+        self.btn_change_res.pack_forget()
+        self.back_btn.pack_forget()
 
     def ask_geometry(self):
-        Label(self, text="Quelle résolution souhaitez-vous ?").pack()
+        self.res_label = Label(self, text="Quelle résolution souhaitez-vous ?")
+        self.res_label.pack()
         self.input_res = Entry(self, name="resolution")
         self.input_res.pack()
-        Button(self, text="Submit", command=self.get_resolution).pack()
+        self.btn_change_res = Button(self, text="Changer", command=self.get_resolution)
+        self.btn_change_res.pack()
 
     def get_resolution(self):
         resolution = self.input_res.get()
-        if resolution != "" and 2 < len(resolution) < 10 and resolution.find('x') > 0:
+        if resolution != "" and 4 < len(resolution) < 10 and resolution.find('x') > 0:
             self.geometry(resolution)
         else:
             messagebox.showwarning("Erreur", "Ce n'est pas une résolution correct !")
