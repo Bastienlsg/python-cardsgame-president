@@ -426,7 +426,6 @@ class PresidentGame:
                     self.list_role[x] = "Vice-Trouduc"
                 else:
                     self.list_role[x] = None
-        print(self.list_role)
 
     def players_active(self):
         """ retourne le nombre de joueurs actif (encore avec des cartes en main) """
@@ -534,7 +533,6 @@ class Round:
     def next_round(self):
         """ enlève les cartes de la table, reset le flag "is_started" à False et paramètre "last_player à une valeur qui ne peut pas être égale au "current_player" """
         self.__last_player = -1
-        self.__current_player = 1
         self.__is_started = False
         self.__cards_on_table = []
     def test_rules(self):
