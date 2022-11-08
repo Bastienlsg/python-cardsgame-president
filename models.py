@@ -107,6 +107,7 @@ class Card:
     @property
     def symbol(self):
         return self.__symbol
+
     @property
     def color(self):
         return self.__color
@@ -207,17 +208,14 @@ class HumanPlayer(Player):
         print('Your current deck is : ')
         print(self.hand)
         print("\n")
-        while choice is None:
-            match state:
-                # demande au joueur de jouer
-                case 1:
-                    choice = input('What value do you wish to play ? pass(p)')
-                # demande au joueur de donner une carte
-                case 2:
-                    choice = input('Quelle carte voulez vous donner ?')
-
+        while choice is None or self.has_symbol(choice) < 1:
+            choice = input('Quelle carte voulez vous jouer  (passer : p)?')
             choice = value_exist(choice)
+
         return choice
+
+    def ask_number_of_card_to_play(self):
+        print("ask number of card to play")
 
     def give_chosen_card(self, player, nb_cards):
         for x in range(0, nb_cards):
@@ -261,25 +259,26 @@ class AIPlayer(Player):
         return cards_played if best_choice is not None else []
 
 
+def ask_player_number():
+    """ input console pour demander le nombre de joueur total de la partie """
+    nb_player = None
+    while nb_player is None or nb_player < 3 or nb_player > 8:
+        try:
+            nb_player = int(input('Combien de joueur pour cette partie ?'))
+        except:
+            nb_player = None
+    return nb_player
+
+
 class PresidentGame:
     def __init__(self, nb_players: int = 3):
-        self.__generate_players(self.ask_player_number())
+        self.__generate_players(ask_player_number())
         self.round = Round()
         self.current_role_available = 1
         self.is_ended = False
         self.list_role = None
         self.generate_list_role()
         self.is_first_game = True
-
-    def ask_player_number(self):
-        """ input console pour demander le nombre de joueur total de la partie """
-        nb_player = None
-        while nb_player is None or nb_player < 3 or nb_player > 8:
-            try:
-                nb_player = int(input('Combien de joueur pour cette partie ?'))
-            except:
-                nb_player = None
-        return nb_player
 
     def next_player(self):
         while not self.round.is_ended() and not self.last_one_player():
@@ -289,71 +288,75 @@ class PresidentGame:
 
                 if not isinstance(self.players[self.round.current_player], AIPlayer):
                     # c'est l'humain qui joue
-                    print('Your current deck is : ')
-                    print(self.main_player.hand)
-                    print("\n")
-                    # si il y à déjà des cartes en jeux
-                    # le joueur est contraint de jouer un certain nombre de cartes
-                    # et une valeur minimum
-                    if self.round.is_started:
-                        choice = None
-                        choice_nb_cards = 0
-                        # tant que la valeur jouée n'est pas supérieur à la valeur de la table
-                        # et que la valeur en question n'est pas en nombre supérieur ou égale dans le jeu du joueur
-                        # par rapport au nombre de cartes sur la table, on demande une valeur
-                        while choice == '' or choice is None or \
-                                not (self.round.cards_on_table[0].is_le(choice) and len(self.round.cards_on_table) <=
-                                     self.players[
-                                         self.round.current_player].has_symbol(choice)):
-                            choice = input('What value do you wish to play ? pass(p)')
-                            if choice == 'p':
-                                break
-                            choice_nb_cards = len(self.round.cards_on_table)
-                    # il n'y a pas de carte en jeu, pas de contrainte de valeur ou de nombre de cartes
-                    else:
-                        choice = '0'
-                        choice_nb_cards = 0
-                        while self.main_player.has_symbol(choice) == 0:
-                            choice = input('What value do you wish to play ?')
-                        # si le joueur à plusieur fois la même carte, on lui demande le nombre de cartes
-                        # qu'il veut poser
-                        if self.main_player.has_symbol(choice) != 1:
-                            # tant que le nombre demander est supérieur au nombres de cartes possédé,
-                            # on refait la demande
-                            while choice_nb_cards == '' or self.main_player.has_symbol(
-                                    choice) < choice_nb_cards or choice_nb_cards < 1:
-                                choice_nb_cards = input(f'How many {choice} do you want to play ?')
-                                if choice_nb_cards != '':
-                                    choice_nb_cards = int(choice_nb_cards)
-                        # le joueur à la carte en un seul exemplaire, on ne demande pas le nombre de
-                        # cartes qu'il veut poser
-                        else:
-                            choice_nb_cards = 1
-
-                    plays = self.main_player.play(choice, choice_nb_cards)
-                    if len(plays) > 0:
-                        self.round.update(self.round.current_player, plays)
-                    print(f"You play {plays}")
-
-                    nb_cards = len(plays)
+                    self.human_play()
                 else:
                     # C'est à L'IA de jouer
                     # print('symbol : {}  /  nb cartes : {}' .format(self.round.cards_on_table[0].symbol, nb_cards))
-                    if self.round.is_started:
-                        plays = self.players[self.round.current_player].play(self.round.cards_on_table[0].symbol,
-                                                                             len(self.round.cards_on_table))
-                    else:
-                        plays = self.players[self.round.current_player].play('3', 1)
-                    # si le nombre de carte joué est supèrieur à 0 le dernier joueur ayant joué est le joueur actuel
-                    if len(plays) > 0:
-                        self.round.update(self.round.current_player, plays)
-                    print(f"{self.players[self.round.current_player].name} plays \t {plays}")
+                    self.ia_play()
 
                 # si le joueur ou l'iA vient de finir sa main, un role lui est attribué
                 if len(self.players[self.round.current_player].hand) < 1:
                     self.set_role(self.round.current_player)
 
             self.round.set_current_player((self.round.current_player + 1) % len(self.players))
+
+    def ia_play(self):
+        if self.round.is_started:
+            plays = self.players[self.round.current_player].play(self.round.cards_on_table[0].symbol,
+                                                                 len(self.round.cards_on_table))
+        else:
+            plays = self.players[self.round.current_player].play('3', 1)
+        # si le nombre de carte joué est supèrieur à 0 le dernier joueur ayant joué est le joueur actuel
+        if len(plays) > 0:
+            self.round.update(self.round.current_player, plays)
+        print(f"{self.players[self.round.current_player].name} plays \t {plays}")
+
+    def human_play(self):
+        print('Your current deck is : ')
+        print(self.main_player.hand)
+        print("\n")
+        # si il y à déjà des cartes en jeux
+        # le joueur est contraint de jouer un certain nombre de cartes
+        # et une valeur minimum
+        if self.round.is_started:
+            choice = None
+            choice_nb_cards = 0
+            # tant que la valeur jouée n'est pas supérieur à la valeur de la table
+            # et que la valeur en question n'est pas en nombre supérieur ou égale dans le jeu du joueur
+            # par rapport au nombre de cartes sur la table, on demande une valeur
+            while choice == '' or choice is None or \
+                    not (self.round.cards_on_table[0].is_le(choice) and len(self.round.cards_on_table) <=
+                         self.players[
+                             self.round.current_player].has_symbol(choice)):
+                choice = input('What value do you wish to play ? pass(p)')
+                if choice == 'p':
+                    break
+                choice_nb_cards = len(self.round.cards_on_table)
+        # il n'y a pas de carte en jeu, pas de contrainte de valeur ou de nombre de cartes
+        else:
+            choice = '0'
+            choice_nb_cards = 0
+            while self.main_player.has_symbol(choice) == 0:
+                choice = input('What value do you wish to play ?')
+            # si le joueur à plusieur fois la même carte, on lui demande le nombre de cartes
+            # qu'il veut poser
+            if self.main_player.has_symbol(choice) != 1:
+                # tant que le nombre demander est supérieur au nombres de cartes possédé,
+                # on refait la demande
+                while choice_nb_cards == '' or self.main_player.has_symbol(
+                        choice) < choice_nb_cards or choice_nb_cards < 1:
+                    choice_nb_cards = input(f'How many {choice} do you want to play ?')
+                    if choice_nb_cards != '':
+                        choice_nb_cards = int(choice_nb_cards)
+            # le joueur à la carte en un seul exemplaire, on ne demande pas le nombre de
+            # cartes qu'il veut poser
+            else:
+                choice_nb_cards = 1
+
+        plays = self.main_player.play(choice, choice_nb_cards)
+        if len(plays) > 0:
+            self.round.update(self.round.current_player, plays)
+        print(f"You play {plays}")
 
     def set_first_player(self):
         if not self.is_first_game:
@@ -366,7 +369,7 @@ class PresidentGame:
                 for card in player.hand:
                     if card.symbol == "D" and card.color == '♡':
                         self.round.set_current_player(self.players.index(player))
-                        print("{} a la dame de coeur, à lui/elle de commencer !!" .format(player.name))
+                        print("{} a la dame de coeur, à lui/elle de commencer !!".format(player.name))
 
         self.is_first_game = False
 
