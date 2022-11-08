@@ -36,8 +36,8 @@ def game_loop(g: PresidentGame):
 
 
 if __name__ == '__main__':
-    #win = Window()
-    #win.mainloop()
+    win = Window()
+    win.mainloop()
     print(
         """        *********************************************
         *** President : The cards game (TM) v.0.1 ***

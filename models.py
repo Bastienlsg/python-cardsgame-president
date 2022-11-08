@@ -306,6 +306,7 @@ class PresidentGame:
                     self.set_role(self.round.current_player)
 
             self.round.set_current_player((self.round.current_player + 1) % len(self.players))
+            self.round.test_rules()
 
     def ia_play(self):
         if self.round.is_started:
@@ -533,8 +534,13 @@ class Round:
     def next_round(self):
         """ enlève les cartes de la table, reset le flag "is_started" à False et paramètre "last_player à une valeur qui ne peut pas être égale au "current_player" """
         self.__last_player = -1
+        self.__current_player = 1
         self.__is_started = False
         self.__cards_on_table = None
+
+    def test_rules(self):
+        if self.__cards_on_table[0].symbol == "2":
+            self.__current_player = self.__last_player
 
     def update(self, last_player, plays):
         """ met à jour le last_player et les cartes sur la tables avec les paramètres envoyés, passe le flag is_started du round à True """
@@ -587,8 +593,8 @@ class Window(Tk):
         self.title('Jeu du président')
         icon = PhotoImage(file='assets/icon.png')
         self.iconphoto(False, icon)
-        bg_menu = PhotoImage(file="assets/president_game.jpg.png")
-        bg_game = PhotoImage(file="assets/poker_top.jpg")
+        #bg_menu = PhotoImage(file="assets/president_game.jpg.png")
+        #bg_game = PhotoImage(file="assets/poker_top.jpg")
         self.geometry('500x250')
         self.home_page()
         self.input_res = None
