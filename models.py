@@ -686,6 +686,8 @@ class Window(Tk):
 
         #### play_page
 
+        self.bg_game = Label(self, image=self.bg_play)
+
         self.play = Frame(self, bg="black")
 
         self.player_label = Label(self.play, text="Combien de joueur souhaitez-vous dans vos parties ?")
@@ -697,7 +699,6 @@ class Window(Tk):
         self.btn_validate_players = Button(self.play, text="Valider", command=lambda: self.temporary_label())
         self.btn_validate_players.pack(side=TOP, padx=50, pady=10)
 
-
         self.input_res = None
         self.messagebox = None
 
@@ -707,10 +708,8 @@ class Window(Tk):
         self.home.pack()
 
     def display_play_page(self):
-        self.play.pack()
-
-        self.bg_game = Label(self, image=self.bg_play)
         self.bg_game.place(x=0, y=0)
+        self.play.pack()
 
     def temporary_label(self, duration=3000):
         self.information = "Bonjour {} la partie est configuré pour {} joueur ".format(self.input_name.get(), self.input_player.get())
