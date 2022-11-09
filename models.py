@@ -322,9 +322,9 @@ class PresidentGame:
 
     def human_play(self):
         current_player = self.players[self.round.current_player]
-        #print('Your current deck is : ')
-        #print(self.main_player.hand)
-        #print("\n")
+        # print('Your current deck is : ')
+        # print(self.main_player.hand)
+        # print("\n")
         # si il y à déjà des cartes en jeux
         # le joueur est contraint de jouer un certain nombre de cartes
         # et une valeur minimum
@@ -526,12 +526,10 @@ class PresidentGame:
             return
 
         # si une carte de même symbole est joué, le joueur suivant passe sont tour
-        if self.round.last_play()[0].symbol == self.round.cards_on_table[len(self.round.cards_on_table) - 2][0].symbol and len(self.round.cards_on_table) > 1:
-            print("{} passe son tour :-("  .format(self.players[self.round.current_player].name))
+        if self.round.last_play()[0].symbol == self.round.cards_on_table[len(self.round.cards_on_table) - 2][
+            0].symbol and len(self.round.cards_on_table) > 1:
+            print("{} passe son tour :-(".format(self.players[self.round.current_player].name))
             self.round.set_current_player((self.round.current_player + 1) % len(self.players))
-
-
-
 
     @property
     def players(self):
@@ -567,6 +565,7 @@ class Round:
             for card in sets:
                 nb_cards += 1
         return nb_cards
+
     def next_round(self):
         """ enlève les cartes de la table, reset le flag "is_started" à False et paramètre "last_player à une valeur qui ne peut pas être égale au "current_player" """
         self.__last_player = -1
@@ -630,105 +629,106 @@ class Window(Tk):
         self.resizable(height=False, width=False)
         self.bg_menu = PhotoImage(file="assets/president_game.png")
         self.bg_play = PhotoImage(file="assets/poker_table.png")
-        self.home_page()
-        self.input_res = None
-        self.messagebox = None
-        self.mainloop()
 
-    def home_page(self):
         self.bg_home = Label(self, image=self.bg_menu)
         self.bg_home.place(x=0, y=0)
+        self.bg_home.place()
 
+        #### home_page
         self.home = Frame(self, bg="black")
-        self.home.pack()
 
-        self.btn_play = Button(self.home, text="Jouer", command=lambda: [self.play_page(), self.hide_home_page()])
+        self.btn_play = Button(self.home, text="Jouer", command=lambda: [self.hide_home_page(), self.display_play_page()])
         self.btn_play.pack()
-
         self.btn_parameters = Button(self.home, text="Paramètres",
-                                     command=lambda: [self.parameters_page(), self.hide_home_page()])
+                                     command=lambda: [self.hide_home_page(), self.display_parameters_page()])
         self.btn_parameters.pack()
 
-    def play_page(self):
-        self.bg_game = Label(self, image=self.bg_play)
-        self.bg_game.place(x=0, y=0)
-
-        self.play = Frame(self, bg="black")
-        self.play.pack()
-
-    def parameters_page(self):
-        self.bg_home = Label(self, image=self.bg_menu)
-        self.bg_home.place(x=0, y=0)
-
+        #### parameters_page
         self.parameters = Frame(self, bg="black")
-        self.parameters.pack()
 
-        self.ask_geometry()
-        self.ask_player()
-        self.ask_name()
-
-        self.back_btn = Button(self.parameters, text=u'\u21a9', command=lambda: [self.home_page(), self.hide_parameters_page()])
-        self.back_btn.pack(anchor="w", side="bottom", padx=10, pady=10)
-
-    def hide_home_page(self):
-        self.home.destroy()
-
-    def hide_parameters_page(self):
-        self.parameters.destroy()
-
-    def ask_geometry(self):
-        self.parameters = Frame(self, bg="black")
-        self.parameters.pack()
-
+        # resolutions
         self.res_label = Label(self.parameters, text="Quelle résolution souhaitez-vous ?")
         self.res_label.pack()
 
-        self.btn_res_1600x900 = Button(self.parameters, text="1600x900", command=lambda: self.set_resolution('1600x900'))
+        self.btn_res_1600x900 = Button(self.parameters, text="1600x900",
+                                       command=lambda: self.set_resolution('1600x900'))
         self.btn_res_1600x900.pack()
-
-        self.btn_res_1280x720 = Button(self.parameters, text="1280x720", command=lambda: self.set_resolution('1280x720'))
+        self.btn_res_1280x720 = Button(self.parameters, text="1280x720",
+                                       command=lambda: self.set_resolution('1280x720'))
         self.btn_res_1280x720.pack()
-
-        self.btn_res_1440x900 = Button(self.parameters, text="1440x900", command=lambda: self.set_resolution('1440x900'))
+        self.btn_res_1440x900 = Button(self.parameters, text="1440x900",
+                                       command=lambda: self.set_resolution('1440x900'))
         self.btn_res_1440x900.pack()
-
-        self.btn_res_1536x864 = Button(self.parameters, text="1536x864", command=lambda: self.set_resolution('1536x864'))
+        self.btn_res_1536x864 = Button(self.parameters, text="1536x864",
+                                       command=lambda: self.set_resolution('1536x864'))
         self.btn_res_1536x864.pack()
-
-        self.btn_res_1366x768 = Button(self.parameters, text="1366x768", command=lambda: self.set_resolution('1366x768'))
+        self.btn_res_1366x768 = Button(self.parameters, text="1366x768",
+                                       command=lambda: self.set_resolution('1366x768'))
         self.btn_res_1366x768.pack()
-
-        self.btn_res_1920x1080 = Button(self.parameters, text="1920x1080", command=lambda: self.set_resolution('1920x1080'))
+        self.btn_res_1920x1080 = Button(self.parameters, text="1920x1080",
+                                        command=lambda: self.set_resolution('1920x1080'))
         self.btn_res_1920x1080.pack()
 
-    def set_resolution(self, res):
-        self.geometry(res)
+        # paramètres du jeu
 
-    def ask_player(self):
-        self.parameters = Frame(self, bg="black")
-        self.parameters.pack()
-
-        self.player_label = Label(self.parameters, text="Combien de joueur souhaitez-vous dans vos parties ?")
-        self.player_label.pack()
-
-        self.input_player = Entry(self.parameters)
-        self.input_player.pack()
-
-        self.btn_player = Button(self.parameters, text="Valider", command=self.set_player)
-        self.btn_player.pack(side=TOP, padx=50, pady=10)
-
-    def ask_name(self):
         self.name_label = Label(self.parameters, text="Quel prénom souhaitez-vous utiliser pour vos parties ?")
         self.name_label.pack()
 
         self.input_name = Entry(self.parameters)
         self.input_name.pack()
 
-        self.btn_name = Button(self.parameters, text="Valider", command=self.set_name)
-        self.btn_name.pack(side=TOP, padx=50, pady=10)
+        self.btn_validate_parameters = Button(self.parameters, text="Valider", command=lambda: self.set_parameters())
+        self.btn_validate_parameters.pack(side=TOP, padx=50, pady=10)
 
-    def set_player(self):
-        print(self.input_player.get())
+        self.back_btn = Button(self.parameters, text=u'\u21a9',
+                               command=lambda: [self.display_home_page(), self.hide_parameters_page()])
+        self.back_btn.pack(anchor="w", side="bottom", padx=10, pady=10)
 
-    def set_name(self):
-        print(self.input_name.get())
+        #### play_page
+
+        self.play = Frame(self, bg="black")
+
+        self.player_label = Label(self.play, text="Combien de joueur souhaitez-vous dans vos parties ?")
+        self.player_label.pack()
+
+        self.input_player = Entry(self.play)
+        self.input_player.pack()
+
+        self.btn_validate_players = Button(self.play, text="Valider", command=lambda: self.temporary_label())
+        self.btn_validate_players.pack(side=TOP, padx=50, pady=10)
+
+
+        self.input_res = None
+        self.messagebox = None
+
+        self.display_home_page()
+
+    def display_home_page(self):
+        self.home.pack()
+
+    def display_play_page(self):
+        self.play.pack()
+
+        self.bg_game = Label(self, image=self.bg_play)
+        self.bg_game.place(x=0, y=0)
+
+    def temporary_label(self, duration=3000):
+        self.information = "Bonjour {} la partie est configuré pour {} joueur ".format(self.input_name.get(), self.input_player.get())
+        self.label = Label(self, text=self.information)
+        self.label.pack()
+        self.label.after(duration, self.label.destroy)
+
+    def display_parameters_page(self):
+        self.parameters.pack()
+
+    def hide_home_page(self):
+        self.home.pack_forget()
+
+    def hide_parameters_page(self):
+        self.parameters.pack_forget()
+
+    def set_resolution(self, res):
+        self.geometry(res)
+
+    def set_parameters(self):
+        print()
