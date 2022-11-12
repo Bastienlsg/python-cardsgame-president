@@ -53,6 +53,9 @@ class Deck:
     def __str__(self) -> str:
         return str(self.__cards)
 
+    def __len__(self):
+        return len(self.__cards)
+
     @property
     def cards(self):
         return self.__cards
@@ -699,6 +702,11 @@ class Window(Tk):
         self.btn_validate_players = Button(self.play, text="Valider", command=lambda: self.temporary_label())
         self.btn_validate_players.pack(side=TOP, padx=50, pady=10)
 
+        self.back_btn = Button(self.play, text=u'\u21a9',
+                               command=lambda: [self.display_home_page(), self.hide_play_page()])
+        self.back_btn.pack(anchor="w", side="bottom", padx=10, pady=10)
+
+
         self.input_res = None
         self.messagebox = None
 
@@ -712,7 +720,7 @@ class Window(Tk):
         self.play.pack()
 
     def temporary_label(self, duration=3000):
-        self.information = "Bonjour {} la partie est configuré pour {} joueur ".format(self.input_name.get(), self.input_player.get())
+        self.information = "Bonjour {name} la partie est configuré pour {number} joueur(s) {name_information}".format(name="joueur" if self.input_name.get() == "" else self.input_name.get(), number=self.input_player.get(), name_information="Vous souhaitez changer de pseudo ? Allez dans les paramètres" if self.input_name.get() == "" else "")
         self.label = Label(self, text=self.information)
         self.label.pack()
         self.label.after(duration, self.label.destroy)
@@ -722,6 +730,11 @@ class Window(Tk):
 
     def hide_home_page(self):
         self.home.pack_forget()
+
+    def hide_play_page(self):
+        #IMPOSSIBLE DE FAIRE DISPARAITRE LE BG POUR REVENIR SUR LE HOME
+        #self.bg_game.pack_forget()
+        self.play.pack_forget()
 
     def hide_parameters_page(self):
         self.parameters.pack_forget()
