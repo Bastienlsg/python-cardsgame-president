@@ -22,10 +22,10 @@ class TestPlayers(unittest.TestCase):
         test_array2 = ["7", "9", "0", "a", "R", "p"]
         for e in test_array:
             method = models.value_exist(e)
-            self.assertTrue((method) == None)
+            self.assertTrue(method == None)
         for e in test_array2:
             method = models.value_exist(e)
-            self.assertFalse((method) == None)
+            self.assertFalse(method == None)
 
     def test_deck_gen(self):
         deck = models.Deck()
@@ -42,8 +42,12 @@ class TestPlayers(unittest.TestCase):
         player = models.Player()
         self.assertIsInstance(player, models.Player)
 
-    def test_give_best_card(self):
+    '''def test_give_best_card(self):
+        player = models.Player()'''
+
+    def test_ask_name(self):
         player = models.Player()
+        self.assertTrue(len(player._name) != 0)
 
 
 if __name__ == '__main__':
