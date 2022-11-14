@@ -124,7 +124,7 @@ class Player:
             names.get_first_name()
         self._hand: list = []
         self.role = None
-        self.ask_name()
+
 
     def give_best_card(self, player, nb_card):
         """ le joueur donne sa meilleur carte au joueur passé en paramètre """
@@ -283,7 +283,8 @@ def ask_player_number():
 
 class PresidentGame:
     def __init__(self, nb_players: int = 3):
-        self.__generate_players(ask_player_number())
+        self.__generate_players(nb_players)
+        self.distribute_cards()
         self.round = Round()
         self.current_role_available = 1
         self.is_ended = False
@@ -696,8 +697,8 @@ class Window(Tk):
         self.player_label = Label(self.play, text="Combien de joueur souhaitez-vous dans vos parties ?")
         self.player_label.pack()
 
-        self.input_player = Entry(self.play)
-        self.input_player.pack()
+        self.input_nb_player = Entry(self.play)
+        self.input_nb_player.pack()
 
         self.btn_validate_players = Button(self.play, text="Valider", command=lambda: self.temporary_label())
         self.btn_validate_players.pack(side=TOP, padx=50, pady=10)
@@ -710,6 +711,8 @@ class Window(Tk):
         self.input_res = None
         self.messagebox = None
 
+        self.president_game = PresidentGame()
+
         self.display_home_page()
 
     def display_home_page(self):
@@ -719,8 +722,8 @@ class Window(Tk):
         self.bg_game.place(x=0, y=0)
         self.play.pack()
 
-    def temporary_label(self, duration=3000):
-        self.information = "Bonjour {name} la partie est configuré pour {number} joueur(s) {name_information}".format(name="joueur" if self.input_name.get() == "" else self.input_name.get(), number=self.input_player.get(), name_information="Vous souhaitez changer de pseudo ? Allez dans les paramètres" if self.input_name.get() == "" else "")
+    def temporary_label(self, duration=4500):
+        self.information = "Bonjour {name} la partie est configuré pour {number} joueur(s) {name_information}".format(name="joueur" if self.input_name.get() == "" else self.input_name.get(), number=self.input_nb_player.get(), name_information="Vous souhaitez changer de pseudo ? Allez dans les paramètres" if self.input_name.get() == "" else "")
         self.label = Label(self, text=self.information)
         self.label.pack()
         self.label.after(duration, self.label.destroy)
@@ -742,4 +745,4 @@ class Window(Tk):
         self.geometry(res)
 
     def set_parameters(self):
-        print()
+        self.president_game.main_player.name = self.input_name.get()

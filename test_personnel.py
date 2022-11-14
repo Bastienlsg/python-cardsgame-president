@@ -1,8 +1,5 @@
-import io
-import sys
 import unittest
 import models
-import re
 
 
 class TestPlayers(unittest.TestCase):

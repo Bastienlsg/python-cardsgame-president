@@ -1,6 +1,5 @@
-from models import PresidentGame, Player, Window
-from models import PresidentGame, AIPlayer
-import random
+from models import Window
+from models import PresidentGame
 
 
 def print_ln():
