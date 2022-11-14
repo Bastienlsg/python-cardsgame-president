@@ -43,5 +43,5 @@ if __name__ == '__main__':
         ********************************************* """)
     g = PresidentGame()
 
-    game_loop(g)
+    # game_loop(g)
     print('Thank you for playing. I hope you enjoyed !')

@@ -2,6 +2,11 @@ import random
 import names
 import re
 from tkinter import *
+from PIL import Image, ImageTk
+
+from PIL import ImageTk
+
+CARD_PATH = 'assets/cards/'
 
 COLORS = ['♡', '♤', '♧', '♢']
 VALUES = {
@@ -78,6 +83,47 @@ class Card:
         self.__value = VALUES[symbol]
         self.__color = color
 
+    def file_name(self):
+        """ retourne le nom de fichier correspondant à l'image de la carte """
+        file_name = ''
+        match self.__symbol:
+            case '2':
+                file_name += '2_of_'
+            case '3':
+                file_name += '3_of_'
+            case '4':
+                file_name += '4_of_'
+            case '5':
+                file_name += '5_of_'
+            case '6':
+                file_name += '6_of_'
+            case '7':
+                file_name += '7_of_'
+            case '8':
+                file_name += '8_of_'
+            case '9':
+                file_name += '9_of_'
+            case '10':
+                file_name += '10_of_'
+            case 'V':
+                file_name += 'jack_of_'
+            case 'D':
+                file_name += 'queen_of_'
+            case 'R':
+                file_name += 'king_of_'
+            case 'A':
+                file_name += 'ace_of_'
+        match self.__color:
+            case '♡':
+                file_name += 'hearts.png'
+            case '♤':
+                file_name += 'spades.png'
+            case '♧':
+                file_name += 'clubs.png'
+            case '♢':
+                file_name += 'diamonds.png'
+        return file_name
+
     def __lt__(self, other):
         return self.__value < other.value
 
@@ -124,7 +170,6 @@ class Player:
             names.get_first_name()
         self._hand: list = []
         self.role = None
-
 
     def give_best_card(self, player, nb_card):
         """ le joueur donne sa meilleur carte au joueur passé en paramètre """
@@ -641,7 +686,8 @@ class Window(Tk):
         #### home_page
         self.home = Frame(self, bg="black")
 
-        self.btn_play = Button(self.home, text="Jouer", command=lambda: [self.hide_home_page(), self.display_play_page()])
+        self.btn_play = Button(self.home, text="Jouer",
+                               command=lambda: [self.hide_home_page(), self.display_play_page()])
         self.btn_play.pack()
         self.btn_parameters = Button(self.home, text="Paramètres",
                                      command=lambda: [self.hide_home_page(), self.display_parameters_page()])
@@ -690,6 +736,8 @@ class Window(Tk):
 
         #### play_page
 
+        # game parameter
+
         self.bg_game = Label(self, image=self.bg_play)
 
         self.play = Frame(self, bg="black")
@@ -700,13 +748,28 @@ class Window(Tk):
         self.input_nb_player = Entry(self.play)
         self.input_nb_player.pack()
 
-        self.btn_validate_players = Button(self.play, text="Valider", command=lambda: self.temporary_label())
+        self.btn_validate_players = Button(self.play, text="Valider", command=lambda: self.launch_game())
         self.btn_validate_players.pack(side=TOP, padx=50, pady=10)
 
         self.back_btn = Button(self.play, text=u'\u21a9',
                                command=lambda: [self.display_home_page(), self.hide_play_page()])
         self.back_btn.pack(anchor="w", side="bottom", padx=10, pady=10)
 
+        # play desk
+
+        self.play_desk = Frame(self, bg="black")
+
+        self.info_message = Label(self.play_desk, text="message d'information")
+        self.info_message.pack()
+
+        self.input_card_played = Entry(self.play_desk)
+        self.input_card_played.pack(side=BOTTOM)
+
+        self.button_card_played = Button(self.play_desk, text="Jouer", command=lambda: self.validate_card)
+        self.button_card_played.pack()
+
+        self.player_hand = Frame(self.play_desk)
+        self.player_hand.pack()
 
         self.input_res = None
         self.messagebox = None
@@ -722,11 +785,34 @@ class Window(Tk):
         self.bg_game.place(x=0, y=0)
         self.play.pack()
 
-    def temporary_label(self, duration=4500):
-        self.information = "Bonjour {name} la partie est configuré pour {number} joueur(s) {name_information}".format(name="joueur" if self.input_name.get() == "" else self.input_name.get(), number=self.input_nb_player.get(), name_information="Vous souhaitez changer de pseudo ? Allez dans les paramètres" if self.input_name.get() == "" else "")
+    def launch_game(self, duration=4500):
+        self.information = "Bonjour {name} la partie est configuré pour {number} joueur(s) {name_information}".format(
+            name="joueur" if self.input_name.get() == "" else self.input_name.get(), number=self.input_nb_player.get(),
+            name_information="Vous souhaitez changer de pseudo ? Allez dans les paramètres" if self.input_name.get() == "" else "")
         self.label = Label(self, text=self.information)
         self.label.pack()
         self.label.after(duration, self.label.destroy)
+
+        self.play.pack_forget()
+        self.play_desk.pack()
+
+        self.update_player_hand()
+
+    def update_player_hand(self):
+        print(self.president_game.main_player.hand)
+        for card in self.president_game.main_player.hand:
+            path = CARD_PATH + card.file_name()
+
+            image1 = Image.open(path)
+            image1 = image1.resize((90, 135))
+
+            test = ImageTk.PhotoImage(image1)
+
+            label1 = Label(image=test)
+            label1.configure(width=90, height=135 )
+            label1.image = test
+
+            label1.pack(side=RIGHT)
 
     def display_parameters_page(self):
         self.parameters.pack()
