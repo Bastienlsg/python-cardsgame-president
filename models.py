@@ -733,7 +733,7 @@ class Window(Tk):
 
     def hide_play_page(self):
         #IMPOSSIBLE DE FAIRE DISPARAITRE LE BG POUR REVENIR SUR LE HOME
-        #self.bg_game.pack_forget()
+        self.bg_game.place_forget()
         self.play.pack_forget()
 
     def hide_parameters_page(self):
