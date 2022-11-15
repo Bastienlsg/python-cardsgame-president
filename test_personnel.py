@@ -39,8 +39,17 @@ class TestPlayers(unittest.TestCase):
         player = models.Player()
         self.assertIsInstance(player, models.Player)
 
-    '''def test_give_best_card(self):
-        player = models.Player()'''
+    def test_give_best_card(self):
+        g = models.PresidentGame()
+        player1 = g.players[0]
+        player2 = g.players[1]
+        player1_hand_start = len(player1.hand)
+        player2_hand_start = len(player2.hand)
+        for i in range(1, 2):
+            player1.give_best_card(player2, i)
+            print(player1_hand_start)
+            print(len(player1.hand))
+            self.assertTrue(player1_hand_start-i == len(player1.hand) && player2_hand_start-i == len(player2.hand))
 
     def test_ask_name(self):
         player = models.Player()

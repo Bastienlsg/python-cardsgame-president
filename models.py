@@ -674,7 +674,7 @@ class Window(Tk):
         super().__init__()
         self.title('Jeu du président')
         self.configure(bg='black')
-        self.geometry('1920x1080')
+        self.geometry('1600x900')
         self.resizable(height=False, width=False)
         self.bg_menu = PhotoImage(file="assets/president_game.png")
         self.bg_play = PhotoImage(file="assets/poker_table.png")
@@ -703,9 +703,6 @@ class Window(Tk):
         self.btn_res_1600x900 = Button(self.parameters, text="1600x900",
                                        command=lambda: self.set_resolution('1600x900'))
         self.btn_res_1600x900.pack()
-        self.btn_res_1280x720 = Button(self.parameters, text="1280x720",
-                                       command=lambda: self.set_resolution('1280x720'))
-        self.btn_res_1280x720.pack()
         self.btn_res_1440x900 = Button(self.parameters, text="1440x900",
                                        command=lambda: self.set_resolution('1440x900'))
         self.btn_res_1440x900.pack()
@@ -715,9 +712,6 @@ class Window(Tk):
         self.btn_res_1366x768 = Button(self.parameters, text="1366x768",
                                        command=lambda: self.set_resolution('1366x768'))
         self.btn_res_1366x768.pack()
-        self.btn_res_1920x1080 = Button(self.parameters, text="1920x1080",
-                                        command=lambda: self.set_resolution('1920x1080'))
-        self.btn_res_1920x1080.pack()
 
         # paramètres du jeu
 
@@ -759,17 +753,17 @@ class Window(Tk):
 
         self.play_desk = Frame(self, bg="black")
 
+        self.player_hand = Frame(self.play_desk)
+        self.player_hand.pack(pady=5)
+
         self.info_message = Label(self.play_desk, text="message d'information")
-        self.info_message.pack()
+        self.info_message.pack(pady=5)
 
         self.input_card_played = Entry(self.play_desk)
-        self.input_card_played.pack(side=BOTTOM)
+        self.input_card_played.pack(pady=5)
 
         self.button_card_played = Button(self.play_desk, text="Jouer", command=lambda: self.validate_card)
-        self.button_card_played.pack()
-
-        self.player_hand = Frame(self.play_desk)
-        self.player_hand.pack()
+        self.button_card_played.pack(pady=20)
 
         self.input_res = None
         self.messagebox = None
@@ -789,27 +783,25 @@ class Window(Tk):
         self.information = "Bonjour {name} la partie est configuré pour {number} joueur(s) {name_information}".format(
             name="joueur" if self.input_name.get() == "" else self.input_name.get(), number=self.input_nb_player.get(),
             name_information="Vous souhaitez changer de pseudo ? Allez dans les paramètres" if self.input_name.get() == "" else "")
-        self.label = Label(self, text=self.information)
-        self.label.pack()
-        self.label.after(duration, self.label.destroy)
+        self.info_label = Label(self, text=self.information)
+        self.info_label.pack()
+        self.info_label.after(duration, self.info_label.destroy)
 
         self.play.pack_forget()
-        self.play_desk.pack()
-
         self.update_player_hand()
+        self.play_desk.pack(side=BOTTOM, pady=50)
 
     def update_player_hand(self):
-        print(self.president_game.main_player.hand)
         for card in self.president_game.main_player.hand:
             path = CARD_PATH + card.file_name()
 
             image1 = Image.open(path)
-            image1 = image1.resize((90, 135))
+            image1 = image1.resize((70, 125))
 
             test = ImageTk.PhotoImage(image1)
 
-            label1 = Label(image=test)
-            label1.configure(width=90, height=135 )
+            label1 = Label(self.play_desk, image=test)
+            label1.configure(width=70, height=125 )
             label1.image = test
 
             label1.pack(side=RIGHT)
