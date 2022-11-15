@@ -22,4 +22,11 @@
 
     ```python3 main.py```
 
+## Règles du jeu :
+
+* Pour la première partie, le joueur avec la Dame de Coeur commence, pour les parties suivantes, c'est le Président
+* si deux cartes identiques sont joué l'une après l'autre, le joueur suivant passe sont tour
+* si quatres cartes identiques sont sur le dessus du paquets, le joueur ayant posé la dernière carte remporte la main
+* si un (ou plusieur à la fois) deux est joué, le joueur remporte la main
+
 Bon jeu !
