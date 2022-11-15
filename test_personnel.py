@@ -52,6 +52,22 @@ class TestPlayers(unittest.TestCase):
         player = models.Player()
         self.assertTrue(len(player._name) != 0)
 
+    def test_ask_player_number(self):
+        nb_player = models.ask_player_number()
+        self.assertFalse(nb_player < 3 and nb_player > 8)
+
+    def test_ask_card_to_give(self):
+        g = models.PresidentGame()
+        player1 = g.players[0]
+        choice_player = player1.ask_card_to_give()
+        self.assertFalse(choice_player is None)
+
+    def test_ask_card_to_play(self):
+        g = models.PresidentGame()
+        player1 = g.players[0]
+        choice_player = player1.ask_card_to_play()
+        self.assertTrue(choice_player is not None or choice_player == "P")
+
 
 if __name__ == '__main__':
     unittest.main()
