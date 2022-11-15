@@ -1,4 +1,6 @@
 import random
+import time
+
 import names
 import re
 from tkinter import *
@@ -336,8 +338,10 @@ class PresidentGame:
         self.list_role = None
         self.generate_list_role()
         self.is_first_game = True
+        self.message = None
 
     def next_player(self):
+        """
         print(self.players)
         while not self.round.is_ended() and not self.last_one_player():
             # si le joueur à encore des cartes en main
@@ -354,8 +358,9 @@ class PresidentGame:
                 # si le joueur ou l'iA vient de finir sa main, un role lui est attribué
                 if len(self.players[self.round.current_player].hand) < 1:
                     self.set_role(self.round.current_player)
-
-            self.round.set_current_player((self.round.current_player + 1) % len(self.players))
+"""
+        self.round.set_current_player((self.round.current_player + 1) % len(self.players))
+        if len(self.round.last_play()) > 0:
             self.test_rules()
 
     def ia_play(self):
@@ -420,12 +425,14 @@ class PresidentGame:
             for player in self.players:
                 if player.role == 1:
                     self.round.set_current_player(self.players.index(player))
+                    self.message = "le président est {}, à lui/elle de commencer !!!".format(player.name)
                     print("le président est {}, à lui/elle de commencer !!!".format(player.name))
         else:
             for player in self.players:
                 for card in player.hand:
                     if card.symbol == "D" and card.color == '♡':
                         self.round.set_current_player(self.players.index(player))
+                        self.message = "{} a la dame de coeur, à lui/elle de commencer !!".format(player.name)
                         print("{} a la dame de coeur, à lui/elle de commencer !!".format(player.name))
 
         self.is_first_game = False
@@ -555,7 +562,12 @@ class PresidentGame:
         # si quelqu'un joue un ou plusieurs 2, le tour est fini et il prend la main
         if self.round.last_play()[0].symbol == "2":
             self.round.set_current_player(self.round.last_player)
-            print("le 2 remporte la main !!")
+            self.message = ("{} a joué un 2 et remporte la main !!" .format(
+                self.players[self.round.last_player].name))
+            self.round.set_current_player(self.round.last_player)
+            print("{} a joué un 2 et remporte la main !!" .format(
+                self.players[self.round.last_player].name))
+            self.round.set_current_player(self.round.last_player)
             return
 
         # si 4 carte de symbole identique son posé sur le dessus du paquet, le joueur ayant posé la dernière carte remporte la main
@@ -569,6 +581,10 @@ class PresidentGame:
                         nb_card_same_symbol += 1
                     i += 1
         if nb_card_same_symbol == 4:
+            self.message = ("les quatres même cartes ont été joué d'affilé, {} remporte la main !!!".format(
+                self.players[self.round.last_player].name))
+            self.round.set_current_player(self.round.last_player)
+
             print("les quatres même cartes ont été joué d'affilé, {} remporte la main !!!".format(
                 self.players[self.round.last_player].name))
             self.round.set_current_player(self.round.last_player)
@@ -622,6 +638,8 @@ class Round:
         self.__cards_on_table = []
 
     def last_play(self):
+        if len(self.__cards_on_table) == 0:
+            return []
         return self.cards_on_table[len(self.__cards_on_table) - 1]
 
     def update(self, last_player, plays):
@@ -736,7 +754,7 @@ class Window(Tk):
 
         self.play = Frame(self, bg="black")
 
-        self.player_label = Label(self.play, text="Combien de joueur souhaitez-vous dans vos parties ?")
+        self.player_label = Label(self.play, text="Combien de joueur souhaitez-vous dans vos parties ?(defaut = 3)")
         self.player_label.pack()
 
         self.input_nb_player = Entry(self.play)
@@ -753,8 +771,14 @@ class Window(Tk):
 
         self.play_desk = Frame(self, bg="black")
 
+        self.label_player_deck = Label(self.play_desk)
+        self.label_player_deck.pack(pady=5)
+
         self.player_hand = Frame(self.play_desk)
         self.player_hand.pack(pady=5)
+
+        self.label_temporary = Label(self.play_desk)
+        self.label_temporary.pack(pady=5)
 
         self.info_message = Label(self.play_desk, text="message d'information")
         self.info_message.pack(pady=5)
@@ -762,13 +786,30 @@ class Window(Tk):
         self.input_card_played = Entry(self.play_desk)
         self.input_card_played.pack(pady=5)
 
-        self.button_card_played = Button(self.play_desk, text="Jouer", command=lambda: self.validate_card)
+        self.label_nb_carte = Label(self.play_desk, text="nombre de cartes")
+        self.label_nb_carte.pack(pady=5)
+
+        self.input_nb_card_played = Entry(self.play_desk)
+        self.input_nb_card_played.pack(pady=5, )
+
+        self.button_card_played = Button(self.play_desk, text="Jouer", command=lambda: self.validate_card())
+        self.button_card_played['state'] = 'disabled'
         self.button_card_played.pack(pady=20)
+
+        self.card_on_table = Frame(self.play_desk)
+        self.card_on_table.pack(pady=20)
+
+        # player frame
+
+        self.ai_players_frame = Frame(self.play_desk, bg='black')
+        self.ai_players_frame.pack()
+
+        self.ai_players = []
 
         self.input_res = None
         self.messagebox = None
 
-        self.president_game = PresidentGame()
+        self.president_game = None
 
         self.display_home_page()
 
@@ -780,6 +821,16 @@ class Window(Tk):
         self.play.pack()
 
     def launch_game(self, duration=4500):
+        try:
+            nb_player = int(self.input_nb_player.get())
+            self.president_game = PresidentGame(nb_player)
+        except:
+            self.president_game = PresidentGame()
+
+        self.generate_ai_player()
+
+        print(self.president_game.players)
+
         self.information = "Bonjour {name} la partie est configuré pour {number} joueur(s) {name_information}".format(
             name="joueur" if self.input_name.get() == "" else self.input_name.get(), number=self.input_nb_player.get(),
             name_information="Vous souhaitez changer de pseudo ? Allez dans les paramètres" if self.input_name.get() == "" else "")
@@ -791,7 +842,87 @@ class Window(Tk):
         self.update_player_hand()
         self.play_desk.pack(side=BOTTOM, pady=50)
 
+        self.president_game.set_first_player()
+
+        while self.president_game.round.current_player != 0:
+            self.president_game.ia_play()
+            self.update_card_on_table()
+            self.president_game.next_player()
+
+        self.info_message.configure(text='Quelle carte voulez vous jouer (passer: p)?')
+        self.button_card_played['state'] = 'normal'
+
+    def generate_ai_player(self):
+        for player in self.president_game.players:
+            label = Label(self.ai_players_frame, text='{} : {} cartes' .format(player.name, len(player.hand)))
+            label.pack()
+            self.ai_players.append(label)
+
+        self.label_player_deck.configure(text="voici votre jeu {} :" .format(self.president_game.main_player.name))
+
+    def validate_card(self):
+        main_player = self.president_game.main_player
+        # récupération des valeurs
+        value = self.input_card_played.get()
+        choice = value_exist(value)
+        try:
+            nb_card = int(self.input_nb_card_played.get())
+        except:
+            nb_card = None
+
+        plays = []
+        if choice is not None:
+
+            # si le round a deja commencé, vérification que le joueur peut jouer les cartes demandés
+            if len(self.president_game.round.last_play()) > 0:
+                print('round already started !')
+                if choice == 'P':
+                    print('vous passez votre tour')
+
+                elif self.president_game.round.last_play()[0].is_le(choice) and len(
+                        self.president_game.round.last_play()) <= self.president_game.players[
+                    self.president_game.round.current_player].has_symbol(choice):
+                    plays = main_player.play(choice, len(self.president_game.round.last_play()))
+
+            # le joueur joue ce qu'il veut
+            else:
+                print('first player to play !')
+                if nb_card is not None and main_player.has_symbol(choice) >= nb_card:
+                    plays = main_player.play(choice, nb_card)
+
+            if len(plays) > 0:
+                self.president_game.round.update(self.president_game.round.current_player, plays)
+            print(f"You play {plays}")
+
+            if len(plays) > 0 or choice == 'P':
+                self.president_game.next_player()
+
+        self.input_card_played.delete(0, 'end')
+        self.input_nb_card_played.delete(0, 'end')
+        self.update_player_hand()
+
+        if self.president_game.round.is_ended():
+            self.president_game.round.next_round()
+            self.temporary_message()
+
+
+        if self.president_game.round.is_ended():
+            for widget in self.card_on_table.winfo_children():
+                widget.destroy()
+        if not self.president_game.round.is_ended():
+            while self.president_game.round.current_player != 0:
+                self.president_game.ia_play()
+                self.president_game.next_player()
+                if self.president_game.round.is_ended():
+                    self.president_game.round.next_round()
+                    self.temporary_message()
+                self.update_ai_players()
+
+        self.update_card_on_table()
+
     def update_player_hand(self):
+        for child in self.player_hand.winfo_children():
+            child.destroy()
         for card in self.president_game.main_player.hand:
             path = CARD_PATH + card.file_name()
 
@@ -800,8 +931,34 @@ class Window(Tk):
 
             test = ImageTk.PhotoImage(image1)
 
-            label1 = Label(self.play_desk, image=test)
-            label1.configure(width=70, height=125 )
+            label1 = Label(self.player_hand, image=test)
+            label1.configure(width=70, height=125)
+            label1.image = test
+
+            label1.pack(side=RIGHT)
+
+    def temporary_message(self):
+        self.label_temporary.configure(text=self.president_game.message)
+        # self.label_temporary.pack(pady=5)
+        # self.label_temporary.after(5000, self.info_label.pack_forget())
+    def update_ai_players(self):
+        for player in self.president_game.players:
+            id = self.president_game.players.index(player)
+            text = "{}: {} cartes" .format((player.name), len(player.hand))
+            self.ai_players[id].configure(text=text)
+    def update_card_on_table(self):
+        for child in self.card_on_table.winfo_children():
+            child.destroy()
+        for card in self.president_game.round.last_play():
+            path = CARD_PATH + card.file_name()
+
+            image1 = Image.open(path)
+            image1 = image1.resize((70, 125))
+
+            test = ImageTk.PhotoImage(image1)
+
+            label1 = Label(self.card_on_table, image=test)
+            label1.configure(width=70, height=125)
             label1.image = test
 
             label1.pack(side=RIGHT)
